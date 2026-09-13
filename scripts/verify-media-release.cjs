@@ -2,6 +2,7 @@
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'../static-dist');
 const assets=['app/index.html','app/account.html','app/account.mjs','app/app.js','app/experience.css','app/ambient-music.mjs','app/site-shell.mjs','app/music-position.mjs','app/music-preference.mjs','app/first-tour.mjs','app/handwriting.css','app/font-ready.mjs','app/intro-entry.mjs','app/warm-assets.mjs','js/static-connection.js','manifest.webmanifest','service-worker.js','wake.html','colorlab-mark.svg','assets/fonts/ChenYuluoyan-v2.woff2','assets/intro/about-mobile-4k120-v6.mp4','assets/intro/about-desktop-4k120-v6.mp4','assets/music/home-first-light-hq.flac','assets/music/about-soft-piano-hq.flac',...['cl-180','cl-192','cl-512','cl-maskable-192','cl-maskable-512'].map(n=>'assets/icons/'+n+'-v2.png')];
+assets.push('assets/intro/about-mobile-4k120-hevc-v7.mp4','assets/intro/about-desktop-4k120-hevc-v7.mp4');
 (async()=>{
  const nonce=Date.now();
  for(let i=0;i<assets.length;i+=4)await Promise.all(assets.slice(i,i+4).map(async asset=>{

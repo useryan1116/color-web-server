@@ -18,4 +18,5 @@ for (const file of ['wake.html', 'app/index.html', 'main/login-user.html']) {
   for (const match of read(file).matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) if (match[1].trim()) new vm.Script(match[1], { filename: file });
 }
 for (const file of ['vendor/pdfjs/pdf.mjs', 'vendor/pdfjs/pdf.worker.mjs', 'test/detailed-reports/ENFJ-red.pdf', 'assets/icons/cl-192-v2.png']) assert(fs.statSync(path.join(root, file)).size > 0);
+for(const layout of ['mobile','desktop'])assert(fs.statSync(path.join(root,`assets/intro/about-${layout}-4k120-hevc-v7.mp4`)).size>0);
 console.log('Static build checks passed: entry, isolated wake, inline syntax, PWA, PDF assets, no server/test files.');

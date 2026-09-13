@@ -9,7 +9,7 @@ function hub(){const events=new Map();return {
   dispatchEvent(e){for(const fn of [...(events.get(e.type)||[])])fn(e);}
 };}
 function visit(){const attributes=new Map();return {document:{documentElement:{hasAttribute:k=>attributes.has(k),setAttribute:(k,v)=>attributes.set(k,v),removeAttribute:k=>attributes.delete(k)}}};}
-function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalone=false}={}){
+function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalone=false,failFirstCodec=false}={}){
   const dialogs=[],videos=[];let resolvePlay,diagnostics;
   const element=()=>({...hub(),style:{},dataset:{},setAttribute(){},append(){},prepend(){},replaceChildren(){},remove(){}});
   const article=element();
@@ -18,7 +18,7 @@ function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalon
     createElement(tag){const node=element();
       if(tag==='dialog'){const skip=element(),stage=element();Object.assign(node,{skip,querySelector:s=>s==='button'?skip:stage,showModal(){this.open=true;},close(){this.open=false;}});dialogs.push(node);}
       if(tag==='details'){const output=element();Object.assign(node,{output,querySelector:()=>output});diagnostics=node;}
-      if(tag==='video'){Object.assign(node,{readyState:0,currentTime:0,pause(){},play(){return defer?new Promise(r=>resolvePlay=r):fail?Promise.reject(Object.assign(new Error('secret-message-not-for-output'),{name:typeof fail==='string'?fail:'Error'})):Promise.resolve();}});videos.push(node);}
+      if(tag==='video'){Object.assign(node,{readyState:0,currentTime:0,pause(){this.paused=true;},play(){const rejected=fail||(failFirstCodec&&!this.src.includes('hevc')?'NotSupportedError':false);return defer?new Promise(r=>resolvePlay=r):rejected?Promise.reject(Object.assign(new Error('secret-message-not-for-output'),{name:typeof rejected==='string'?rejected:'Error'})):Promise.resolve();}});videos.push(node);}
       return node;
     }};
   const window={...hub(),top};
@@ -87,4 +87,17 @@ test('temporary diagnostics show failure category without raw exception text or 
     const page=entry(visit(),{fail});await page.run();assert.match(page.diagnosticText,new RegExp(label));
     assert.doesNotMatch(page.diagnosticText,/secret-message|example.test/);
   }
+});
+test('unsupported AVC retries HEVC at the same 4K120 without closing the intro',async()=>{
+  const page=entry(visit(),{failFirstCodec:true});await page.run();
+  assert.equal(page.videos.length,2);assert.match(page.videos[1].src,/4k120-hevc-v7/);
+  assert.equal(page.dialogs[0].open,true);assert.equal(page.videos[0].paused,true);
+  page.videos[0].dispatchEvent(new Event('ended'));
+  assert.equal(page.dialogs[0].open,true,'stale AVC events cannot close HEVC');
+  assert.match(page.diagnosticText,/HEVC/);page.skip();assert.equal(await page.run(),2);
+});
+test('unsupported codecs stop after two attempts and leave a future visit retryable',async()=>{
+  const top=visit(),page=entry(top,{fail:'NotSupportedError'});await page.run();
+  assert.equal(page.videos.length,2);assert.equal(page.dialogs[0].open,false);
+  assert.equal(await entry(top).run(),1);
 });

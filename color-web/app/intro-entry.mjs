@@ -11,11 +11,11 @@ function reportIntro(status,video) {
     article.prepend(panel);
   }
   panel.querySelector('pre').textContent=[
-    '檢查版：20260913.1',`狀態：${status}`,
+    '檢查版：20260913.2',`狀態：${status}`,
     `獨立 App 模式：${navigator.standalone===true||matchMedia('(display-mode: standalone)').matches?'是':'否'}`,
     `減少動態：${matchMedia('(prefers-reduced-motion: reduce)').matches?'是':'否'}`,
     `本次開站已播放或跳過：${visitRoot.hasAttribute(seenAttribute)?'是':'否'}`,
-    ...(video?[`影片準備狀態：${Number(video.readyState)||0}`,`影片錯誤代碼：${Number(video.error?.code)||0}`,`播放秒數：${(Number(video.currentTime)||0).toFixed(2)}`,`影片尺寸：${Number(video.videoWidth)||0} × ${Number(video.videoHeight)||0}`]:[])
+    ...(video?[`影片編碼：${video.dataset.introCodec}`,`影片準備狀態：${Number(video.readyState)||0}`,`影片錯誤代碼：${Number(video.error?.code)||0}`,`播放秒數：${(Number(video.currentTime)||0).toFixed(2)}`,`影片尺寸：${Number(video.videoWidth)||0} × ${Number(video.videoHeight)||0}`]:[])
   ].join('\n');
 }
 document.addEventListener('colorlab-visit-restored',()=>showIntro());
@@ -59,12 +59,27 @@ export function showIntro() {
   document.body.append(dialog);dialog.showModal();
   document.dispatchEvent(new CustomEvent('colorlab-intro-open',{detail:dialog}));
   // The approved Remotion composition is rendered ahead of time, not on the phone.
-  video=document.createElement('video');video.muted=true;video.defaultMuted=true;video.playsInline=true;
-  video.preload='auto';video.setAttribute('aria-label','ColorLab 四色角色開場');
-  video.src=innerHeight>innerWidth?'/assets/intro/about-mobile-4k120-v6.mp4':'/assets/intro/about-desktop-4k120-v6.mp4';
-  video.style.cssText='width:100%;height:100%;object-fit:contain';
-  video.addEventListener('ended',()=>close('播放完成'),{once:true});video.addEventListener('error',()=>close('影片載入或解碼失敗'),{once:true});
-  dialog.querySelector('[data-intro-stage]').replaceChildren(video);
-  reportIntro('正在載入影片',video);
-  video.play().then(()=>{if(!closed){visitRoot.setAttribute(seenAttribute,'');reportIntro('影片已開始播放',video);}}).catch(error=>close(({NotAllowedError:'瀏覽器拒絕自動播放',NotSupportedError:'影片格式不支援',AbortError:'播放請求中斷'})[error?.name]||'影片播放失敗'));
+  const orientation=innerHeight>innerWidth?'mobile':'desktop';
+  const playSource=(alternative=false)=>{
+    if(closed)return;
+    video?.pause();
+    const candidate=document.createElement('video');video=candidate;
+    candidate.muted=true;candidate.defaultMuted=true;candidate.playsInline=true;
+    candidate.preload='auto';candidate.setAttribute('aria-label','ColorLab 四色角色開場');
+    candidate.dataset.introCodec=alternative?'HEVC / 4K 120':'H.264 / 4K 120';
+    candidate.src=`/assets/intro/about-${orientation}-4k120-${alternative?'hevc-v7':'v6'}.mp4`;
+    candidate.style.cssText='width:100%;height:100%;object-fit:contain';
+    const active=()=>!closed&&video===candidate;
+    const failed=(name)=>{
+      if(!active())return;
+      if(!alternative&&(name==='NotSupportedError'||[3,4].includes(candidate.error?.code))){playSource(true);return;}
+      close(({NotAllowedError:'瀏覽器拒絕自動播放',NotSupportedError:'影片格式不支援',AbortError:'播放請求中斷'})[name]||'影片載入或解碼失敗');
+    };
+    candidate.addEventListener('ended',()=>{if(active())close('播放完成');},{once:true});
+    candidate.addEventListener('error',()=>failed(candidate.error?.code===4?'NotSupportedError':'MediaError'),{once:true});
+    dialog.querySelector('[data-intro-stage]').replaceChildren(candidate);
+    reportIntro(alternative?'正在嘗試同畫質 HEVC 影片':'正在載入影片',candidate);
+    candidate.play().then(()=>{if(active()){visitRoot.setAttribute(seenAttribute,'');reportIntro('影片已開始播放',candidate);}}).catch(error=>failed(error?.name));
+  };
+  playSource();
 }
