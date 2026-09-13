@@ -36,6 +36,11 @@ if (embedded) {
   frame.title = 'ColorLab 網站內容';
   frame.allow = 'autoplay; fullscreen';
   frame.src = location.href;
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted) return;
+    document.documentElement.removeAttribute('data-colorlab-intro-seen');
+    frame.contentDocument?.dispatchEvent(new Event('colorlab-visit-restored'));
+  });
   window.addEventListener('hashchange', () => {
     if (frame.contentWindow.location.href !== location.href) frame.contentWindow.location.replace(location.href);
   });

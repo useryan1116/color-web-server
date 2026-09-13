@@ -1,18 +1,18 @@
-let enteredAbout=false;
-window.addEventListener('hashchange',()=>{if(location.hash!=='#about')enteredAbout=false;});
+const visitRoot=window.top.document.documentElement;
+const seenAttribute='data-colorlab-intro-seen';
+document.addEventListener('colorlab-visit-restored',()=>showIntro());
 document.addEventListener('click',event=>{
   if(event.defaultPrevented||event.button>0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
   const link=event.target.closest?.('a[href]');if(!link||link.target||link.hasAttribute('download'))return;
   const target=new URL(link.href,location.href);
   if(location.hash==='#about'&&target.origin===location.origin&&target.pathname===location.pathname&&target.hash==='#about'){
-    event.preventDefault();showIntro(true);
+    event.preventDefault();showIntro();
   }
 });
-export function showIntro(replay=false) {
+export function showIntro() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || location.hash!=='#about') return;
-  // Each route entry can replay; duplicate renders on the same entry cannot.
-  if((enteredAbout&&!replay)||document.querySelector('dialog[aria-label="ColorLab 開場"][open]'))return;
-  enteredAbout=true;
+  // The persistent shell owns one visit; iframe navigation must not reset it.
+  if(visitRoot.hasAttribute(seenAttribute)||document.querySelector('dialog[aria-label="ColorLab 開場"][open]'))return;
   const dialog=document.createElement('dialog');
   dialog.setAttribute('aria-label','ColorLab 開場');
   dialog.style.cssText='position:fixed;inset:0;max-width:none;max-height:none;width:100vw;height:100dvh;margin:0;padding:0;border:0;background:#faf8f2;overflow:hidden;';
@@ -32,7 +32,7 @@ export function showIntro(replay=false) {
     if(prior instanceof HTMLElement && prior.isConnected)prior.focus({preventScroll:true});
   };
   const deadline=setTimeout(close,12000);
-  dialog.querySelector('button').onclick=close;
+  dialog.querySelector('button').onclick=()=>{visitRoot.setAttribute(seenAttribute,'');close();};
   dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
   window.addEventListener('hashchange',close);window.addEventListener('pagehide',close);
   document.body.append(dialog);dialog.showModal();
@@ -44,5 +44,5 @@ export function showIntro(replay=false) {
   video.style.cssText='width:100%;height:100%;object-fit:contain';
   video.addEventListener('ended',close,{once:true});video.addEventListener('error',close,{once:true});
   dialog.querySelector('[data-intro-stage]').replaceChildren(video);
-  video.play().catch(close);
+  video.play().then(()=>{if(!closed)visitRoot.setAttribute(seenAttribute,'');}).catch(close);
 }

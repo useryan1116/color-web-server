@@ -1,5 +1,5 @@
 // Independent frontend: cache public shell only, never tokens, records, APIs or Render wake HTML.
-const CACHE = 'colorlab-static-shell-v23';
+const CACHE = 'colorlab-static-shell-v24';
 const OPTIONAL=['/assets/fonts/ChenYuluoyan-v2.woff2','/assets/intro/about-mobile-4k120-v6.mp4','/assets/intro/about-desktop-4k120-v6.mp4','/assets/music/home-first-light-hq.flac','/assets/music/about-soft-piano-hq.flac'];
 const SHELL = ['/app/', '/app/app.js', '/app/model.mjs', '/app/client.mjs', '/app/auth.mjs', '/app/ui.mjs', '/app/account.html', '/app/account.mjs', '/app/account.css', '/app/style.css', '/app/motion.css', '/js/static-connection.js', '/colorlab-mark.svg', '/wake.html'];
 SHELL.push('/app/site-shell.mjs','/app/font-ready.mjs','/app/handwriting.css','/app/ambient-music.mjs','/app/music-position.mjs','/app/music-preference.mjs','/app/warm-assets.mjs');
