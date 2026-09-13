@@ -96,7 +96,7 @@ router.put('/records/:id/reflection', feedback.limit, handle(async(req,res)=>{
   if(!record)return res.status(404).json({message:'找不到你的這筆測驗紀錄。'});
   const {resultSummary}=await import('../../color-web/app/result-summary.mjs');
   const summary=resultSummary(recordView(record));
-  if(!summary?.matched.length || (!['none','other'].includes(value.choice)&&!summary.matched.some(c=>c.key===value.choice)))return res.status(400).json({message:'請選擇這次結果提供的回饋選項。'});
+  if(!summary?.matched.length)return res.status(400).json({message:'這筆紀錄目前無法接收色彩回饋。'});
   const reflection={...value,updatedAt:new Date()};
   const updated=await TestRecord.updateOne(query,{$set:{reflection}},{runValidators:true});
   if(!updated.matchedCount)return res.status(404).json({message:'這筆紀錄已不存在。'});

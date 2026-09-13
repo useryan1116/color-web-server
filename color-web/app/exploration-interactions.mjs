@@ -48,7 +48,6 @@ export function bindExplorationInteractions(root, {saveReflection}={}) {
       if(panel.getAttribute('aria-busy')==='true')return;
       panel.querySelector('.reflection-error')?.remove();
       const choices=[...panel.querySelectorAll('[data-choice]')];
-      const previous=choices.map(el=>el.getAttribute('aria-pressed'));
       choices.forEach(el=>el.setAttribute('aria-pressed',String(el===button)));
       const pending=document.createElement('p');pending.className='reflection-saving';pending.setAttribute('role','status');pending.textContent='正在儲存…';panel.append(pending);
       panel.setAttribute('aria-busy','true');panel.querySelectorAll('button,textarea').forEach(el=>el.disabled=true);
@@ -59,8 +58,7 @@ export function bindExplorationInteractions(root, {saveReflection}={}) {
         form.hidden=button.dataset.choice!=='other';
         panel.querySelector('[data-choice="other"]').setAttribute('aria-expanded',String(!form.hidden));
       } catch(error) {
-        choices.forEach((el,index)=>el.setAttribute('aria-pressed',previous[index]));
-        const message=document.createElement('p');message.className='reflection-error';message.setAttribute('role','alert');message.textContent=error.message||'回饋未儲存，請再試一次。';panel.append(message);
+        const message=document.createElement('p');message.className='reflection-error';message.setAttribute('role','alert');message.textContent=`尚未儲存，請${button.dataset.choice==='other'?'再次送出回覆':'再點一次選項'}重試。${error.message||''}`;panel.append(message);
       } finally {pending.remove();panel.removeAttribute('aria-busy');panel.querySelectorAll('button,textarea').forEach(el=>el.disabled=false);}
     }
     form?.addEventListener('submit',event=>{

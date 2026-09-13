@@ -2,6 +2,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const source=fs.readFileSync('color-web/app/exploration-interactions.mjs','utf8').replace(/^import .*;$/gm,'').replace(/export /g,'');
 test('other occupies its own final row without changing mood choices',()=>{
   assert.match(fs.readFileSync('color-web/app/experience.css','utf8'),/\.reflection-options \[data-choice="other"\]\s*\{\s*flex-basis:100%;\s*\}/);
+  assert.match(fs.readFileSync('color-web/app/experience.css','utf8'),/\.reflection-saving\s*\{[^}]*position:absolute;[^}]*clip-path:inset\(50%\)/);
 });
 function setup(){
   const make=()=>({attrs:{},setAttribute(k,v){this.attrs[k]=v;},getAttribute(k){return this.attrs[k]??null;},removeAttribute(k){delete this.attrs[k];},addEventListener(k,v){this[k]=v;},toggleAttribute(){},hasAttribute(k){return k==='data-choice';},remove(){this.removed=true;}});
@@ -33,9 +34,9 @@ test('selection responds before the request resolves and remains after confirmed
   assert.equal(s.choices[1].getAttribute('aria-pressed'),'true');
   assert.equal(s.panel.getAttribute('aria-busy'),null);assert.ok(s.children[0].removed);
 });
-test('failed save restores the previous selection and enables retry',async()=>{
+test('failed save keeps the new selection marked unsaved and enables retry',async()=>{
   const s=setup(),finished=s.choices[1].click({detail:1});s.reject(new Error('未儲存'));await finished;
-  assert.equal(s.choices[0].getAttribute('aria-pressed'),'true');
-  assert.equal(s.choices[1].getAttribute('aria-pressed'),'false');
-  assert.equal(s.children[1].textContent,'未儲存');assert.equal(s.choices[1].disabled,false);
+  assert.equal(s.choices[0].getAttribute('aria-pressed'),'false');
+  assert.equal(s.choices[1].getAttribute('aria-pressed'),'true');
+  assert.match(s.children[1].textContent,/尚未儲存/);assert.equal(s.choices[1].disabled,false);
 });

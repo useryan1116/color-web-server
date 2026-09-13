@@ -21,7 +21,11 @@ test('authenticated feedback enforces ownership, available choice, and no extra 
  const path=`/api/explore/records/${record.id}/reflection`;
  assert.equal((await send(path,{choice:'green'},null,'PUT')).status,401);
  assert.equal((await send(path,{choice:'green'},other,'PUT')).status,404);
- assert.equal((await send(path,{choice:'red'},owner,'PUT')).status,400);
+ for(const choice of ['red','yellow','blue','green']){
+  assert.equal((await send(path,{choice},owner,'PUT')).status,200,`displayed choice ${choice} must save`);
+  assert.equal((await Record.findById(record.id)).reflection.choice,choice);
+ }
+ assert.equal((await send(path,{choice:'invalid'},owner,'PUT')).status,400);
  assert.equal((await send(path,{choice:'green',email:'x'},owner,'PUT')).status,400);
  assert.equal((await send(path,{choice:'green'},owner,'PUT')).status,200);
  assert.equal((await send(path,{choice:'none'},owner,'PUT')).status,200);
