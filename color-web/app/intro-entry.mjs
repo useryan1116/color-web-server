@@ -1,9 +1,17 @@
 let enteredAbout=false;
 window.addEventListener('hashchange',()=>{if(location.hash!=='#about')enteredAbout=false;});
-export function showIntro() {
+document.addEventListener('click',event=>{
+  if(event.defaultPrevented||event.button>0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+  const link=event.target.closest?.('a[href]');if(!link||link.target||link.hasAttribute('download'))return;
+  const target=new URL(link.href,location.href);
+  if(location.hash==='#about'&&target.origin===location.origin&&target.pathname===location.pathname&&target.hash==='#about'){
+    event.preventDefault();showIntro(true);
+  }
+});
+export function showIntro(replay=false) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || location.hash!=='#about') return;
   // Each route entry can replay; duplicate renders on the same entry cannot.
-  if(enteredAbout)return;
+  if((enteredAbout&&!replay)||document.querySelector('dialog[aria-label="ColorLab 開場"][open]'))return;
   enteredAbout=true;
   const dialog=document.createElement('dialog');
   dialog.setAttribute('aria-label','ColorLab 開場');

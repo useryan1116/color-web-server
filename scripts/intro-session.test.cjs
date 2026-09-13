@@ -6,11 +6,12 @@ const source=fs.readFileSync('color-web/app/intro-entry.mjs','utf8').replace('ex
 const visit=()=>{const attributes=new Map();return {document:{documentElement:{hasAttribute:k=>attributes.has(k),setAttribute:(k,v)=>attributes.set(k,v)}}};};
 function entry(top,storage,hash='#about',reduced=false){
   let starts=0;
-  const events={};
-  const context={window:{top,addEventListener:(name,fn)=>events[name]=fn},document:{createElement(){starts++;throw new Error('render-started');}},location:{hash},matchMedia:()=>({matches:reduced}),sessionStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)}};
+  const events={},docEvents={};
+  const context={URL,window:{top,addEventListener:(name,fn)=>events[name]=fn},document:{querySelector:()=>null,addEventListener:(name,fn)=>docEvents[name]=fn,createElement(){starts++;throw new Error('render-started');}},location:{hash,href:'https://example.test/app/account.html'+hash,pathname:'/app/account.html',origin:'https://example.test'},matchMedia:()=>({matches:reduced}),sessionStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)}};
   vm.createContext(context);vm.runInContext(source,context);
   const run=()=>{try{vm.runInContext('showIntro()',context);}catch(e){if(e.message!=='render-started')throw e;}return starts;};
   run.route=hash=>{context.location.hash=hash;events.hashchange?.();};
+  run.click=href=>{try{docEvents.click?.({button:0,target:{closest:()=>({href,hasAttribute:()=>false})},preventDefault(){}});}catch(e){if(e.message!=='render-started')throw e;}return starts;};
   return run;
 }
 test('intro plays once per about entry, including returns and reopened documents',()=>{
@@ -21,6 +22,14 @@ test('intro plays once per about entry, including returns and reopened documents
   assert.equal(first(),2,'duplicate render on About does not restart');
   assert.equal(entry(top,restored)(),1,'a new account document may play in the same shell');
   assert.equal(entry(visit(),restored)(),1,'a new top-level document is a new visit');
+});
+test('every explicit About click replays even when already on About',()=>{
+  const run=entry(visit(),new Map());assert.equal(run(),1);
+  assert.equal(run.click('https://example.test/app/account.html#about'),2);
+  assert.equal(run.click('https://example.test/app/account.html#about'),3);
+  assert.equal(run(),3,'ordinary duplicate renders still do not interrupt');
+  assert.equal(run.click('https://example.test/app/account.html#privacy'),3);
+  assert.equal(run.click('https://elsewhere.test/app/account.html#about'),3);
 });
 test('restoring cached About DOM invokes its entry hook',()=>{
   const account=fs.readFileSync('color-web/app/account.mjs','utf8');
