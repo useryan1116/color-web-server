@@ -68,7 +68,7 @@ test('explicit skip before playback still counts for this opening',async()=>{
 test('restored top-level opening resets once and asks current About to play',async()=>{
   const top=visit(),page=entry(top);await page.run();page.skip();
   const shell=fs.readFileSync('color-web/app/site-shell.mjs','utf8');
-  const start=shell.indexOf("  window.addEventListener('pageshow', event =>");
+  const start=shell.lastIndexOf("  window.addEventListener('pageshow', event =>");
   assert.ok(start>=0,'shell must handle restored documents');
   const block=shell.slice(start,shell.indexOf('\n  });',start)+6);
   const window=hub();vm.runInNewContext(block,{window,document:top.document,frame:{contentDocument:page.document},Event});

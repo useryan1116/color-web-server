@@ -10,7 +10,9 @@ if (embedded) {
   };
   document.addEventListener('colorlab-tour-close',sync);
   window.addEventListener('hashchange', sync);
-  window.addEventListener('pageshow', sync);
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted) sync();
+  });
   document.addEventListener('click', () => notify('colorlab-page-gesture'), true);
   document.addEventListener('keydown', event => {
     if (event.key === 'Enter' || event.key === ' ') notify('colorlab-page-gesture');
