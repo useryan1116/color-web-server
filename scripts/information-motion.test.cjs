@@ -40,3 +40,15 @@ test('article animation is scoped and latest-news disclaimer is removed',()=>{
   assert.doesNotMatch(css,/dialog\.article-dialog\[open\]\s+#dialog-content>h2\s*\{animation:/,'article heading must stay attached to the dialog');
   assert.doesNotMatch(css.match(/@keyframes cl-article-slide\{[^\n]+/)[0],/scale\(/,'article text must not resize during entry');
 });
+
+test('companion dialogue uses readable character colors without visible speaker labels',()=>{
+  const js=fs.readFileSync('color-web/app/about.mjs','utf8'),css=fs.readFileSync('color-web/app/about.css','utf8');
+  assert.ok(js.includes("bubble.textContent=button.querySelector('.about-saying').textContent"));
+  assert.ok(!js.includes("createElement('strong')"));
+  const luminance=hex=>hex.match(/\w\w/g).map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+  for(const color of ['red','yellow','green','blue']){
+    const match=css.match(new RegExp(`data-companion="${color}"\\] \\.about-bubble\\{color:#([0-9a-f]{6})`));
+    assert.ok(match,color);
+    assert.ok((luminance('fffefd')+.05)/(luminance(match[1])+.05)>=4.5,`${color} text contrast`);
+  }
+});

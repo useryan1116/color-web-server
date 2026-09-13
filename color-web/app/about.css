@@ -39,8 +39,12 @@
 .about-final-scene .about-stage{position:absolute;inset:0;padding:0;background:none;display:block}
 .about-final-scene .about-character{position:absolute;left:calc(22.734375% + var(--order)*14.0625%);top:52%;width:12.34375%;height:30%;animation:none}
 .about-final-scene .about-character .about-bubble{box-sizing:border-box;width:180px;max-width:calc(100vw - 48px);font:14px/1.6 var(--body-font);left:50%;right:auto;transform:translateX(-50%);--tail:50%;bottom:calc(100% + 10px);text-align:left}
-.about-final-scene .about-bubble strong{display:block;margin-bottom:4px;font:600 12px/1.5 var(--body-font);color:#785a65}
-.about-final-scene .about-bubble::after{content:'';position:absolute;left:var(--tail);bottom:-5px;width:10px;height:10px;background:#fffefd;transform:translateX(-50%) rotate(45deg)}
+.about-character[data-companion="red"] .about-bubble{color:#b44245;--bubble-edge:#e7b5b6}
+.about-character[data-companion="yellow"] .about-bubble{color:#8a6500;--bubble-edge:#dec981}
+.about-character[data-companion="green"] .about-bubble{color:#426a3b;--bubble-edge:#b2c8ac}
+.about-character[data-companion="blue"] .about-bubble{color:#365e9f;--bubble-edge:#aec3e4}
+.about-final-scene .about-bubble{border:1px solid var(--bubble-edge)}
+.about-final-scene .about-bubble::after{content:'';position:absolute;left:var(--tail);bottom:-6px;width:10px;height:10px;background:#fffefd;border-right:1px solid var(--bubble-edge);border-bottom:1px solid var(--bubble-edge);transform:translateX(-50%) rotate(45deg)}
 .about-final-scene .about-character.is-speaking{z-index:3}
 .about-final-scene .about-character:first-child .about-bubble{transform:translateX(-25%);--tail:25%}
 .about-final-scene .about-character:last-child .about-bubble{transform:translateX(-75%);--tail:75%}

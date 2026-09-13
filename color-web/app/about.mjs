@@ -25,14 +25,12 @@ export function bindAbout(root) {
   const scrollCue=root.querySelector('.about-scroll-cue');
   if(scrollCue)scrollCue.onclick=()=>{const heading=root.querySelector('.about-intention h2');if(!heading)return;heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});heading.scrollIntoView({behavior:reduced.matches?'instant':'smooth',block:'start'});};
   let timeout;
-  root.querySelectorAll('[data-companion]').forEach((button,i)=>{
+  root.querySelectorAll('[data-companion]').forEach(button=>{
     button.onclick=()=>{
       clearTimeout(timeout);
       root.querySelectorAll('.is-speaking').forEach(other=>{other.classList.remove('is-speaking');other.querySelector('.about-bubble').textContent='';});
       const bubble=button.querySelector('.about-bubble');
-      const speaker=document.createElement('strong');speaker.textContent=companions[i][1]+'角色';
-      const message=document.createElement('span');message.textContent=button.querySelector('.about-saying').textContent;
-      bubble.replaceChildren(speaker,message);
+      bubble.textContent=button.querySelector('.about-saying').textContent;
       button.classList.add('is-speaking');
       button.getAnimations().forEach(a=>a.cancel());
       bubble.getAnimations().forEach(a=>a.cancel());
