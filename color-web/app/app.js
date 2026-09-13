@@ -434,7 +434,15 @@ function bindPage() {
   });
 }
 
-window.addEventListener('hashchange', render);
+function renderRoute() {
+  if (paintedRoute !== (location.hash || '#home')) render();
+}
+// Commit during native back/forward before its visual snapshot is dismissed.
+// The subsequent hashchange must not paint the same destination a second time.
+window.addEventListener('popstate', () => {
+  if ([paintedRoute, location.hash].some(route => route.startsWith('#result/'))) renderRoute();
+});
+window.addEventListener('hashchange', renderRoute);
 try {
   await window.ColorLabConnection?.ready;
   const signedIn = !!(sessionStorage.getItem('userToken') || sessionStorage.getItem('adminToken'));
