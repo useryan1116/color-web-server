@@ -33,8 +33,8 @@ test('radio selection stays synchronized after profile is rendered',()=>{
   const s=setup('dark');s.inputs.forEach(input=>input.checked=false);s.events['colorlab-theme-sync']();
   assert.deepEqual(s.inputs.map(input=>input.checked),[false,false,true]);
 });
-test('both documents load the shared theme in head and public cache includes it',()=>{
-  for(const page of ['index','account']){
+test('main, account and PDF documents load the shared theme before paint',()=>{
+  for(const page of ['index','account','pdf']){
     const html=fs.readFileSync(`color-web/app/${page}.html`,'utf8');
     assert.match(html.split('</head>')[0],/data-system-theme media="\(prefers-color-scheme: dark\)"/);
     assert.match(html.split('</head>')[0],/src="\/app\/theme-preference.js"/);
@@ -42,12 +42,12 @@ test('both documents load the shared theme in head and public cache includes it'
   const sw=fs.readFileSync('scripts/static-service-worker.js','utf8');assert.match(sw,/system-theme.css/);assert.match(sw,/theme-preference.js/);
 });
 
-test('dark interface surfaces cover loading, media credits and result overlays',()=>{
+test('dark surfaces retain readable credits but preserve the two color paper experiences',()=>{
   const css=fs.readFileSync('color-web/app/system-theme.css','utf8');
   assert.match(css,/\.intro-loading:not\(\[hidden\]\)\{background:#211f24f5\}/);
   assert.match(css,/\.media-poster \.media-credit.*background:var\(--panel\);color:var\(--muted\)/);
-  assert.match(css,/\.mood-panel::before\{opacity:\.12\}/);
-  assert.match(css,/\.result-hero\.result-paper::after\{background:linear-gradient\(180deg,#2c292f/);
+  assert.match(css,/\.mood-panel,\.result-hero\.result-paper\{color-scheme:light;.*--ink:#393435/);
+  assert.doesNotMatch(css,/\.mood-panel::before|\.result-hero\.result-paper::after|\.result-intro>strong/);
 });
 
 test('dark dialogue and secondary text palettes remain readable',()=>{

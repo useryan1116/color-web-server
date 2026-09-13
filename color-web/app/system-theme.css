@@ -42,12 +42,10 @@
   .content-media{--cover-paper:var(--panel);--cover-ink:var(--ink)}
   .account-app .form-status{color:#ffb0bb}
   .verification-badge.is-verified{background:#344536;color:#c5e3c9}
-  .mood-panel::before{opacity:.12}
-  .result-hero.result-paper{color:var(--ink)}
-  .result-hero.result-paper::after{background:linear-gradient(180deg,#2c292f80 0%,#2c292f00 18%,#2c292f00 34%,#2c292ff2 56%,#2c292f 100%)}
+  /* These two color experiences retain their original paper palette in dark mode. */
+  .mood-panel,.result-hero.result-paper{color-scheme:light;--paper:#fcf8f4;--white:#fffefa;--ink:#393435;--muted:#675f61;--line:#e6deda;--rose:#a84161;--rose-soft:#f5e5e8;color:var(--ink)}
   .history-result-labels span{color:var(--result-ink,#393435)}
   .history-mbti,.history-open{color:var(--rose)}
-  .result-paper .result-intro>strong{color:var(--ink)!important}
   .swatch[data-hue="0"]{color:#a13b4b}
   :is(#records-list,#review-results)[aria-busy="true"]::before{color:var(--rose)}
   .about-final-hero{background:var(--paper)}

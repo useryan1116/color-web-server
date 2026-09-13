@@ -8,6 +8,7 @@ assets.push('app/about.mjs','app/about.css','app/motion.css',...['desktop','mobi
 assets.push('app/navigation-motion.mjs');
 assets.push('app/tab-scrubber.mjs');
 assets.push('app/system-theme.css','app/theme-preference.js');
+assets.push('app/pdf.html','app/pdf.css','app/exploration-interactions.mjs');
 (async()=>{
  const nonce=Date.now();
  for(const retired of ['app/intro-check.html','app/intro-check.mjs']){
