@@ -10,6 +10,9 @@ const inject = `<meta name="mobile-web-app-capable" content="yes"><meta name="ap
 async function main() {
   await fs.mkdir(output, { recursive: true });
   await fs.cp(path.join(root, 'color-web'), output, { recursive: true });
+  // Remove retired diagnostics from reused build output as well as fresh deploys.
+  const retired=['app/intro-check.html','app/intro-check.mjs',...['mobile-full-60-hevc','mobile-small-120-hevc','mobile-small-60-hevc','mobile-small-60-avc','mobile-uhd-120-hevc'].map(n=>'assets/intro/diagnostics/'+n+'.mp4')];
+  await Promise.all(retired.map(file=>fs.rm(path.join(output,file),{force:true})));
   await fs.cp(path.join(root, 'launcher-site/colorlab-mark.svg'), path.join(output, 'colorlab-mark.svg'));
   await fs.cp(path.join(root, 'Server/node_modules/pdfjs-dist/legacy/build'), path.join(output, 'vendor/pdfjs'), { recursive: true });
   const html = await fs.readFile(path.join(root, 'color-web/app/index.html'), 'utf8');

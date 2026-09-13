@@ -1,23 +1,5 @@
 const visitRoot=window.top.document.documentElement;
 const seenAttribute='data-colorlab-intro-seen';
-// Temporary, on-device diagnostics: no persistence, requests or exception payloads.
-function reportIntro(status,video) {
-  const article=document.querySelector('.about-colorlab');if(!article)return;
-  let panel=document.querySelector('[data-intro-check]');
-  if(!panel){
-    panel=document.createElement('details');panel.dataset.introCheck='';
-    panel.style.cssText='margin:12px 0;padding:10px 14px;border:1px solid #ddd8d1;border-radius:12px;color:#625c55;font:14px/1.6 system-ui;text-align:left';
-    panel.innerHTML='<summary style="cursor:pointer">動畫檢查資訊（暫時）</summary><p><a class="button secondary" href="/app/intro-check.html">開啟六項影片對照測試 →</a></p><pre style="white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;margin:8px 0 0"></pre>';
-    const hero=article.querySelector?.('.about-hero');if(hero)hero.after(panel);else article.prepend(panel);
-  }
-  panel.querySelector('pre').textContent=[
-    '檢查版：20260913.4',`狀態：${status}`,
-    `獨立 App 模式：${navigator.standalone===true||matchMedia('(display-mode: standalone)').matches?'是':'否'}`,
-    `減少動態：${matchMedia('(prefers-reduced-motion: reduce)').matches?'是':'否'}`,
-    `本次開站已播放或跳過：${visitRoot.hasAttribute(seenAttribute)?'是':'否'}`,
-    ...(video?[`影片編碼：${video.dataset.introCodec}`,`影片準備狀態：${Number(video.readyState)||0}`,`影片錯誤代碼：${Number(video.error?.code)||0}`,`播放秒數：${(Number(video.currentTime)||0).toFixed(2)}`,`影片尺寸：${Number(video.videoWidth)||0} × ${Number(video.videoHeight)||0}`]:[])
-  ].join('\n');
-}
 document.addEventListener('colorlab-visit-restored',()=>showIntro());
 document.addEventListener('click',event=>{
   if(event.defaultPrevented||event.button>0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
@@ -29,10 +11,10 @@ document.addEventListener('click',event=>{
 });
 export function showIntro() {
   if(location.hash!=='#about')return;
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches){reportIntro('減少動態設定略過');return;}
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   // The persistent shell owns one visit; iframe navigation must not reset it.
   if(document.querySelector('dialog[aria-label="ColorLab 開場"][open]'))return;
-  if(visitRoot.hasAttribute(seenAttribute)){reportIntro('本次開站已播放或跳過');return;}
+  if(visitRoot.hasAttribute(seenAttribute))return;
   const dialog=document.createElement('dialog');
   dialog.setAttribute('aria-label','ColorLab 開場');
   dialog.style.cssText='position:fixed;inset:0;max-width:none;max-height:none;width:100vw;height:100dvh;margin:0;padding:0;border:0;background:#faf8f2;overflow:hidden;';
@@ -47,7 +29,6 @@ export function showIntro() {
   const prior=document.activeElement;
   const close=(status)=>{
     if(closed){if(typeof status!=='string')finishExit?.();return;}closed=true;clearTimeout(deadline);
-    reportIntro(typeof status==='string'?status:'離開頁面',video);
     video?.pause();
     finishExit=()=>{
       if(!dialog.open)return;
@@ -102,13 +83,12 @@ export function showIntro() {
     candidate.addEventListener('ended',()=>{if(active())close('播放完成');},{once:true});
     candidate.addEventListener('error',()=>failed(candidate.error?.code===4?'NotSupportedError':'MediaError'),{once:true});
     dialog.querySelector('[data-intro-stage]').replaceChildren(candidate);
-    reportIntro(index?`正在切換至 ${tier}・120 幀`:'正在載入影片',candidate);
     // Advance after stalled loading/playback; progress renews the deadline.
     const arm=()=>{if(active()){clearTimeout(deadline);deadline=setTimeout(()=>failed('TimeoutError'),4000);}};
     let lastTime=0;
     candidate.addEventListener('timeupdate',()=>{if(candidate.currentTime>lastTime){lastTime=candidate.currentTime;arm();}});
     arm();
-    candidate.play().then(()=>{if(active()){visitRoot.setAttribute(seenAttribute,'');reportIntro('影片已開始播放',candidate);}}).catch(error=>failed(error?.name));
+    candidate.play().then(()=>{if(active())visitRoot.setAttribute(seenAttribute,'');}).catch(error=>failed(error?.name));
   };
   playSource();
 }

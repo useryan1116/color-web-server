@@ -78,16 +78,17 @@ test('home and reduced motion do not consume the opening',async()=>{
   const top=visit();assert.equal(await entry(top,{hash:'#home'}).run(),0);
   assert.equal(await entry(top,{reduced:true}).run(),0);assert.equal(await entry(top).run(),1);
 });
-test('temporary diagnostics distinguish reduced motion, visit gate and actual playback',async()=>{
+test('production About never displays temporary diagnostic panels',async()=>{
   const top=visit(),reduced=entry(top,{reduced:true,standalone:true});await reduced.run();
-  assert.match(reduced.diagnosticText,/減少動態設定略過/);assert.match(reduced.diagnosticText,/獨立 App 模式：是/);
-  const page=entry(top);await page.run();assert.match(page.diagnosticText,/影片已開始播放/);page.skip();
-  assert.match(page.diagnosticText,/使用者跳過/);await page.run();assert.match(page.diagnosticText,/本次開站已播放或跳過/);
+  assert.equal(reduced.diagnosticText,'');
+  const page=entry(top);await page.run();assert.equal(page.diagnosticText,'');page.skip();
+  await page.run();assert.equal(page.diagnosticText,'');
+  assert.doesNotMatch(source,/intro-check|reportIntro|動畫檢查資訊/);
 });
-test('temporary diagnostics show failure category without raw exception text or credentials',async()=>{
-  for(const [fail,label] of [['NotAllowedError','瀏覽器拒絕自動播放'],['NotSupportedError','影片格式不支援'],['AbortError','播放請求中斷']]){
-    const page=entry(visit(),{fail});await page.run();assert.match(page.diagnosticText,new RegExp(label));
-    assert.doesNotMatch(page.diagnosticText,/secret-message|example.test/);
+test('playback failures exit without exposing debug information',async()=>{
+  for(const fail of ['NotAllowedError','NotSupportedError','AbortError']){
+    const page=entry(visit(),{fail});await page.run();assert.equal(page.dialogs[0].open,false);
+    assert.equal(page.diagnosticText,'');
   }
 });
 test('unsupported AVC retries HEVC at the same 4K120 without closing the intro',async()=>{
@@ -96,7 +97,7 @@ test('unsupported AVC retries HEVC at the same 4K120 without closing the intro',
   assert.equal(page.dialogs[0].open,true);assert.equal(page.videos[0].paused,true);
   page.videos[0].dispatchEvent(new Event('ended'));
   assert.equal(page.dialogs[0].open,true,'stale AVC events cannot close HEVC');
-  assert.match(page.diagnosticText,/HEVC/);page.skip();assert.equal(await page.run(),2);
+  page.skip();assert.equal(await page.run(),2);
 });
 test('unsupported codecs stop after six attempts and leave a future visit retryable',async()=>{
   const top=visit(),page=entry(top,{fail:'NotSupportedError'});await page.run();
