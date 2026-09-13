@@ -76,6 +76,11 @@ main[data-flipping] .articulated *,main[data-flipping] .articulated::after { ani
 .collection-switch a[aria-current] { color:var(--rose); background:var(--rose-soft); border-color:var(--rose); }
 .collection-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; align-items:start; }
 .collection-grid .article-card { min-width:0; width:100%; display:flex; flex-direction:column; }
+.home-page .horizontal-list .article-card { display:flex; flex-direction:column; }
+.home-page .article-card .article-image { width:100%; flex:none; aspect-ratio:3/2; }
+.home-page .article-card .topic-illustration { object-fit:contain; }
+.home-page .article-card .article-copy { flex:1; display:flex; flex-direction:column; width:100%; }
+.home-page .article-card .read-link { margin-top:auto; padding-top:22px; }
 .collection-grid .article-copy>p { display:block; overflow:visible; -webkit-line-clamp:unset; }
 .collection-grid .article-copy h3 { min-height:0; }
 .resources .resource-card { display:flex; flex-direction:column; align-items:stretch; gap:0; padding:0; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--white); }

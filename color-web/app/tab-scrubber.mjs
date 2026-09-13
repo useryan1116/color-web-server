@@ -2,7 +2,7 @@
 export function createTabScrubber(nav, win = window) {
   if (!nav) return { sync() {} };
   const doc = nav.ownerDocument, mobile = win.matchMedia('(max-width: 767px)');
-  let gesture = null, timer, suppressUntil = 0, dispatching = false;
+  let gesture = null, suppressUntil = 0, dispatching = false;
   const links = () => [...nav.querySelectorAll('a[href]')];
   const enabled = () => mobile.matches && nav.getBoundingClientRect().height > 0;
   function preview(x, y) {
@@ -24,7 +24,6 @@ export function createTabScrubber(nav, win = window) {
     return selected;
   }
   function reset(blockClick = false) {
-    clearTimeout(timer);
     const previous = gesture; gesture = null;
     if (blockClick) suppressUntil = Date.now() + 700;
     nav.classList.remove('tab-scrubbing', 'tab-outside');
@@ -35,32 +34,23 @@ export function createTabScrubber(nav, win = window) {
   nav.addEventListener('pointerdown', event => {
     if (!enabled() || event.button !== 0) return;
     if (gesture || event.isPrimary === false) { reset(true); return; }
-    if (!event.target.closest('a[href]')) return;
+    if (!links().length) return;
     suppressUntil = 0;
-    gesture = { id: event.pointerId, x: event.clientX, y: event.clientY, active: false };
-    timer = setTimeout(() => {
-      if (!gesture || !enabled()) return;
-      gesture.active = true;
-      nav.setPointerCapture?.(gesture.id);
-      nav.classList.add('tab-scrubbing');
-      gesture.selected = preview(gesture.x, gesture.y);
-    }, 180);
+    gesture = { id: event.pointerId };
+    nav.setPointerCapture?.(gesture.id);
+    nav.classList.add('tab-scrubbing');
+    gesture.selected = preview(event.clientX, event.clientY);
   });
   nav.addEventListener('pointermove', event => {
     if (!gesture || event.pointerId !== gesture.id) return;
-    if (!gesture.active) {
-      if (Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 10) reset(true);
-      return;
-    }
     // No easing on the moving bubble: its position tracks the current finger sample.
     event.preventDefault();
     gesture.selected = preview(event.clientX, event.clientY);
   });
   nav.addEventListener('pointerup', event => {
     if (!gesture || event.pointerId !== gesture.id) return;
-    const active = gesture.active, selected = active && preview(event.clientX, event.clientY);
-    reset(active);
-    if (!active) return; // Preserve the browser's ordinary tap and keyboard activation.
+    const selected = preview(event.clientX, event.clientY);
+    reset(true);
     event.preventDefault();
     if (selected?.isConnected) {
       dispatching = true;
@@ -73,7 +63,6 @@ export function createTabScrubber(nav, win = window) {
     }
   }, true);
   nav.addEventListener('contextmenu', event => { if (gesture) event.preventDefault(); });
-  nav.addEventListener('pointerleave', () => { if (gesture && !gesture.active) reset(true); });
   for (const type of ['pointercancel', 'lostpointercapture']) nav.addEventListener(type, event => {
     if (gesture?.id === event.pointerId) reset(true);
   });

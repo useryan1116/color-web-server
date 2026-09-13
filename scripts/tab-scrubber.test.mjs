@@ -39,8 +39,8 @@ function setup(desktop = false) {
 }
 const hold = () => new Promise(resolve => setTimeout(resolve, 195));
 
-test('hold previews immediately under the finger but navigates only once on release', async () => {
-  const s = setup(); s.down(); await hold();
+test('pointer down previews immediately but navigates only once on release', () => {
+  const s = setup(); s.down();
   assert.ok(s.nav.classList.contains('tab-scrubbing'));
   for (const x of [150, 250, 350]) s.nav.fire('pointermove', { clientX: x });
   assert.deepEqual(s.clicked, []); assert.ok(s.items()[3].classList.contains('tab-preview'));
@@ -50,14 +50,17 @@ test('hold previews immediately under the finger but navigates only once on rele
   assert.ok(s.nav.fire('click', { detail: 1 }).prevented);
   assert.ok(!s.nav.fire('click', { detail: 0 }).prevented, 'keyboard activation remains available');
 });
-test('ordinary tap uses its native link without a synthetic extra navigation', () => {
+test('ordinary tap activates once on release and suppresses the native extra click', () => {
   const s = setup(); s.down(); s.nav.fire('pointerup');
-  assert.deepEqual(s.clicked, []); assert.ok(!s.nav.fire('click').prevented);
+  assert.deepEqual(s.clicked, [0]); assert.ok(s.nav.fire('click').prevented);
 });
-test('moving before hold cancels rather than accidentally navigating', async () => {
-  const s = setup(); s.down(); s.nav.fire('pointermove', { clientX: 150 }); await hold();
+test('immediate drag from empty strip space tracks without a hold delay', () => {
+  const s = setup(); s.nav.fire('pointerdown', {target:s.nav,clientX:100});
+  assert.ok(s.nav.classList.contains('tab-scrubbing'));
+  s.nav.fire('pointermove', { clientX: 150 });
+  assert.deepEqual(s.clicked, []);
   s.nav.fire('pointerup', { clientX: 150 });
-  assert.ok(!s.nav.classList.contains('tab-scrubbing')); assert.deepEqual(s.clicked, []);
+  assert.ok(!s.nav.classList.contains('tab-scrubbing')); assert.deepEqual(s.clicked, [1]);
   assert.ok(s.nav.fire('click').prevented);
 });
 test('outside release cancels and does not select the closest endpoint', async () => {
