@@ -31,16 +31,19 @@ test('a normal iframe pageshow still syncs the current route',()=>{
   assert.equal(page.replaces,1);
 });
 
-test('native back routes a same-document child by hash instead of reloading its old result frame',()=>{
+test('native back updates a same-document child before the later hashchange',()=>{
   const source=fs.readFileSync('color-web/app/site-shell.mjs','utf8');
-  const start=source.lastIndexOf("  window.addEventListener('hashchange', () => {");
-  const end=source.indexOf('\n  });',start)+6;
+  const start=source.lastIndexOf('  const syncFrameRoute = () => {');
+  const end=source.indexOf("  window.addEventListener('hashchange', syncFrameRoute);",start)+58;
   const block=source.slice(start,end);
   const window=events();
-  let replaced=0,childHash='#result/old';
-  const childLocation={origin:'https://example.test',pathname:'/app/',search:'',get href(){return `https://example.test/app/${childHash}`;},replace(){replaced++;},get hash(){return childHash;},set hash(value){childHash=value;}};
-  vm.runInNewContext(block,{URL,window,location:{href:'https://example.test/app/#history'},frame:{contentWindow:{location:childLocation}}});
-  window.dispatch('hashchange');
+  let replaced=0,routeUpdates=0,childHash='#result/old';
+  const child={Event,addEventListener(type,fn){if(type==='hashchange')this.onHashchange=fn;},dispatchEvent(event){if(event.type==='hashchange'){routeUpdates++;this.onHashchange?.(event);}},history:{state:null,replaceState(_state,_title,href){childHash=new URL(href).hash;}},location:null};
+  const childLocation={origin:'https://example.test',pathname:'/app/',search:'',get href(){return `https://example.test/app/${childHash}`;},replace(){replaced++;}};
+  child.location=childLocation;
+  vm.runInNewContext(block,{URL,window,location:{href:'https://example.test/app/#history'},frame:{contentWindow:child}});
+  window.dispatch('popstate');
   assert.equal(replaced,0,'native back must not reload the stale result iframe');
   assert.equal(childHash,'#history');
+  assert.equal(routeUpdates,1,'native back must render history before the later hashchange');
 });

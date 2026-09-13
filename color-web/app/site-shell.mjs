@@ -43,16 +43,20 @@ if (embedded) {
     document.documentElement.removeAttribute('data-colorlab-intro-seen');
     frame.contentDocument?.dispatchEvent(new Event('colorlab-visit-restored'));
   });
-  window.addEventListener('hashchange', () => {
+  const syncFrameRoute = () => {
     const target = new URL(location.href);
-    const current = frame.contentWindow.location;
+    const child = frame.contentWindow;
+    const current = child.location;
     if (current.href === target.href) return;
     if (current.origin === target.origin && current.pathname === target.pathname && current.search === target.search) {
-      current.hash = target.hash;
+      child.history.replaceState(child.history.state, '', target.href);
+      child.dispatchEvent(new child.Event('hashchange'));
       return;
     }
     current.replace(target.href);
-  });
+  };
+  window.addEventListener('popstate', syncFrameRoute);
+  window.addEventListener('hashchange', syncFrameRoute);
   frame.addEventListener('load', () => {
     try {
       if (frame.contentWindow.location.origin !== location.origin) return;
