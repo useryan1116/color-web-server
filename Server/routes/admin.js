@@ -8,6 +8,7 @@ const TestRecord = require('../models/TestRecord');
 const { originalRecordsOnly } = require('../services/legacyRecordImport');
 const TestQuestion = require('../models/TestQuestion');
 const Feedback = require('../models/Feedback');
+const { getJwtSecret } = require('../config/jwtSecret');
 
 const router = express.Router();
 router.use((_req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
@@ -61,7 +62,7 @@ const adminProtect = async (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            const decoded = jwt.verify(token, getJwtSecret());
             if (decoded.role !== 'admin') return res.status(403).json({ message: '僅管理員可使用' });
             // 查找管理員
             const admin = await Admin.findById(decoded.id).select('-password');
@@ -78,6 +79,10 @@ const adminProtect = async (req, res, next) => {
         return res.status(401).json({ message: '未授權，沒有token' });
     }
 };
+
+router.get('/security-status', adminProtect, (_req, res) => {
+    res.json(require('../data/securityStatus'));
+});
 
 // 獲取所有用戶列表 (僅限管理員)
 router.get('/users', adminProtect, async (req, res) => {

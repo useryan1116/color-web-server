@@ -15,16 +15,17 @@ const modal = document.querySelector('dialog');
 const navigation = document.querySelector('#navigation');
 const studio = document.querySelector('#studio-nav');
 const menu = document.querySelector('#menu-toggle');
-const adminRoutes = new Set(['admin', 'users', 'user', 'surveys', 'survey', 'content', 'content-edit', 'records', 'statistics', 'feedbacks', 'admin-profile']);
+const adminRoutes = new Set(['admin', 'users', 'user', 'surveys', 'survey', 'content', 'content-edit', 'records', 'statistics', 'feedbacks', 'security', 'admin-profile']);
 const sections = [['admin', '管理總覽', 'home'], ['users', '帳號管理', 'me'], ['surveys', '問卷管理', 'test'], ['content', '首頁資訊', 'news'], ['records', '測驗紀錄', 'history'], ['feedbacks', '使用者回饋', 'news'], ['admin-profile', '管理員資料', 'me']];
 adminRoutes.add('content-review');
 sections.splice(4,0,['content-review','每週資訊待審','news']);
 sections.splice(5,0,['statistics','測驗統計','test']);
+sections.splice(-1,0,['security','資安狀態','me']);
 let revision = 0, recordsRevision = 0, current = '', page = 1, dirty = false, pendingSave = false, timer;
 let survey, contentItems = [], currentRecords = [], userItems = [];
 let verificationToken = '';
 let recoveryToken = null;
-const retainedViews = new Map(), retainedRoutes = new Set(['admin','users','user','surveys','content','records','statistics','feedbacks','about','privacy','install']);
+const retainedViews = new Map(), retainedRoutes = new Set(['admin','users','user','surveys','content','records','statistics','feedbacks','security','about','privacy','install']);
 const retainedRecords = new Map();
 let mountedKey = '', retainedIdentity = sessionIdentity(), retainedRevision = dataRevision();
 function invalidateViews() { retainedViews.clear(); retainedRecords.clear(); mountedKey = ''; }
@@ -170,6 +171,10 @@ function mediaInput() { return `<label class="field"><span>或上傳圖片（JPG
 function contentCards(items) { return `<div class="cards">${items.map(item=>`<article class="management-card">${adminContentMedia(item)}<span class="hint">${item.type==='news'?'最新資訊':'一般資訊'}</span><h2>${esc(item.title)}</h2><p>${esc(item.description)}</p><div class="actions">${link('#content-edit/'+item._id,'編輯','secondary','edit')}${button('刪除',`data-delete-content="${esc(item._id)}"`,'danger','trash')}</div></article>`).join('')}</div>`; }
 function contentEditor(item = {}) { return `${back('#content','首頁資訊')}${intro(item._id?'編輯資訊':'新增資訊')}<form id="content-form" class="panel form-stack">${select('type','顯示區域',[['news','最新資訊'],['common','一般資訊']],item.type||'news')}${field('title','標題',item.title,'required')}${area('description','內容說明',item.description,'required')}${field('link','外部連結（選填）',item.link)}${contentMetadata(item)}${field('imageUrl','圖片網址',item.imageUrl,'required')}<section class="content-editor-preview" aria-labelledby="content-preview-heading"><h2 id="content-preview-heading">圖片預覽</h2><div data-content-preview>${adminContentMedia(item)}</div><p class="hint">預覽與首頁相同。修改只在此頁顯示，按「儲存資訊」才會套用；圖片能顯示不代表已通過發布檢查。</p></section><p class="hint">發布前需先生成並部署專屬插圖。請填入已登錄的 /assets/images/posts/ 圖片路徑；每週自動清單會先備妥圖片供審核，未完成插圖將無法儲存發布。</p>${status}<div class="actions form-actions">${submit('儲存資訊')}${link('#content','取消')}</div></form>`; }
 function contentMetadata(item) { return `<div class="form-grid">${field('sourceName','來源單位',item.sourceName)}${select('contentKind','內容種類',[['resource','服務資源'],['article','文章'],['workshop','工作坊'],['lecture','講座'],['paper','研究論文']],item.contentKind||'resource')}${field('sourcePublishedAt','來源發布日期',item.sourcePublishedAt,'type="date"')}${field('sourceCheckedAt','查核日期',item.sourceCheckedAt,'type="date"')}${field('expiresAt','截止／下架日期（當日結束）',item.expiresAt?.slice(0,10),'type="date"')}${field('registrationUrl','主辦報名連結',item.registrationUrl,'type="url"')}</div>`; }
+function securityView(data) {
+  const label={resolved:'已修補',unknown:'未知',pending:'待處理'}, level={high:'高',medium:'中',low:'低'};
+  return `${intro('資安狀態','最近一次可稽核查核摘要；不是即時防毒或入侵偵測器。')}<section class="security-summary"><article class="panel"><h2>最後查核</h2><p>${date(data.checkedAt)}</p><p class="hint">${esc(data.note)}</p></article><article class="panel security-${esc(data.detection.status)}"><h2>攻擊偵測</h2><strong>${esc(label[data.detection.status]||data.detection.status)}</strong><p>${esc(data.detection.summary)}</p></article></section><section class="panel"><h2>檢查範圍</h2><ul>${data.scope.map(item=>`<li>${esc(item)}</li>`).join('')}</ul></section><section class="panel"><h2>依賴警示</h2><p>修補前 ${Number(data.dependencyAudit.before.total)||0} 項；修補後 ${Number(data.dependencyAudit.after.total)||0} 項。</p></section><section class="panel"><h2>已確認風險與狀態</h2><div class="security-risks">${data.risks.map(item=>`<article><span class="security-badge">${esc(level[item.severity]||item.severity)}風險 · ${esc(label[item.status]||item.status)}</span><h3>${esc(item.title)}</h3><p>${esc(item.summary)}</p></article>`).join('')}</div></section><section class="panel"><h2>後續待辦</h2><ul>${data.todos.map(item=>`<li>${esc(item)}</li>`).join('')}</ul></section>`;
+}
 function recordRows(records) { return table(['帳號','測驗','結果','完成時間','操作'],records.map(r=>[esc(r.email || '訪客'),esc(r.testType),esc(r.mbtiResult || '一般問卷'),date(r.timestamp),button('查看',`data-record="${esc(r.id||r._id)}"`,'secondary','eye')])); }
 function details(user) { return `<dl class="definition-list">${[['姓名',user.name],['帳號',user.email],['性別',user.gender==='unknown'?'不願透露':user.gender],['生日',user.birthDate?.slice(0,10)],['電話',user.phone],['職業',user.occupation],['註冊時間',date(user.createdAt)]].map(([a,b])=>`<dt>${esc(a)}</dt><dd>${esc(b||'未填寫')}</dd>`).join('')}</dl>`; }
 function information(route) {
@@ -253,7 +258,7 @@ async function render() {
     else if (current === 'verification' || current === 'verify') html = verificationPage(current === 'verify');
     else if (['about','privacy','contact','install'].includes(current)) html = information(current);
     else if (current === 'profile' || current === 'admin-profile') { loaded = current==='profile' ? await api('/api/user/profile') : (await adminAPI('/api/admin/profile')).user; html = profilePage(loaded,isAdmin); }
-    else if (current === 'admin') html = `${intro('照顧每一次探索。','問卷、內容與帳號，都在這裡有條理地管理。')}<div class="cards">${sections.slice(1).map(([r,t,i])=>`<article class="management-card"><div class="card-symbol">${icon(i)}</div><h2>${t}</h2><p>${({users:'搜尋與查看會員資料。',surveys:'建立新問卷、維護題目與選項。','content-review':'查核每週建議、勾選核准或略過。',content:'整理首頁的最新資訊與一般資訊。',records:'篩選、查看與匯出測驗紀錄。',statistics:'查看問卷、MBTI 與色彩的整體分布。',feedbacks:'閱讀使用者的建議與問題。','admin-profile':'更新個人資料與登入密碼。'})[r]}</p>${link('#'+r,'開啟'+t,'secondary','arrow')}</article>`).join('')}</div>`;
+    else if (current === 'admin') html = `${intro('照顧每一次探索。','問卷、內容與帳號，都在這裡有條理地管理。')}<div class="cards">${sections.slice(1).map(([r,t,i])=>`<article class="management-card"><div class="card-symbol">${icon(i)}</div><h2>${t}</h2><p>${({users:'搜尋與查看會員資料。',surveys:'建立新問卷、維護題目與選項。','content-review':'查核每週建議、勾選核准或略過。',content:'整理首頁的最新資訊與一般資訊。',records:'篩選、查看與匯出測驗紀錄。',statistics:'查看問卷、MBTI 與色彩的整體分布。',feedbacks:'閱讀使用者的建議與問題。',security:'查看最近查核、風險修補與待辦。','admin-profile':'更新個人資料與登入密碼。'})[r]}</p>${link('#'+r,'開啟'+t,'secondary','arrow')}</article>`).join('')}</div>`;
     else if (current === 'users') { loaded = await adminAPI('/api/admin/users'); if(seq!==revision)return; userItems=loaded; html = `${intro('帳號管理','搜尋、查看會員與測驗紀錄。')}<div class="toolbar">${field('search','搜尋帳號或姓名','','type="search" placeholder="輸入姓名、Email 或電話"')}</div><div id="users-list">${usersView()}</div>`; }
     else if (current === 'user') { const [u,r] = await Promise.all([adminAPI('/api/admin/user/'+encodeURIComponent(id)),adminAPI('/api/admin/user/'+encodeURIComponent(id)+'/records')]); loaded=u.user; html=`${back('#users','帳號管理')}${intro(loaded.name||'會員資料',loaded.email)}<section class="panel">${details(loaded)}</section><section class="panel"><h2>測驗紀錄</h2>${recordRows(r.records)}</section>`; }
     else if (current === 'surveys') { loaded = await adminAPI('/api/test/surveys'); html=`${intro('問卷管理','保留主打測驗，也為下一次探索留出空間。')}<div class="toolbar">${link('#survey/new','建立問卷','primary','plus')}</div>${surveyCards(loaded)}`; }
@@ -261,6 +266,7 @@ async function render() {
     else if (current === 'content') { loaded=await adminAPI('/api/admin/content-review/current'); if(seq!==revision)return; contentItems=loaded; html=`${intro('首頁資訊','以清楚的圖片與內容，陪伴每一次探索。')}<div class="toolbar">${select('category','資訊類型',[['','全部資訊'],['news','最新資訊'],['common','一般資訊']])}${link('#content-edit/new','新增資訊','primary','plus')}</div><div id="content-list">${contentCards(contentItems)}</div>`; }
     else if (current === 'content-edit') { loaded = id && id!=='new' ? await adminAPI('/api/admin/content-review/current/'+encodeURIComponent(id)) : {}; html=contentEditor(loaded); }
     else if (current === 'content-review') html=await reviewPage();
+    else if (current === 'security') html=securityView(await adminAPI('/api/admin/security-status'));
     else if (current === 'statistics') {
       const stats=await adminAPI('/api/admin/data-stats');
       const feedback=await adminAPI('/api/admin/result-feedback-stats').catch(()=>null);
@@ -360,7 +366,7 @@ function bind(loaded) {
     saveSession(result,role);location.assign('/app/#me');
   });};
   const registration=main.querySelector('#register-form');
-  if(registration)registration.onsubmit=event=>{event.preventDefault();saveForm(registration,async()=>{const values=data(registration);if(values.password!==values.confirmPassword)throw new Error('兩次密碼不同，請再確認。');const result=await api('/api/user/register',json('POST',values));if(result.verificationRequired){sessionStorage.setItem('colorlab:pending-email',result.email);dirty=false;showCompletion('registration',()=>{location.hash='verification';notify(result.message);});return;}throw new Error('請重新整理後再試，註冊服務正在更新。');});};
+  if(registration)registration.onsubmit=event=>{event.preventDefault();saveForm(registration,async()=>{const values=data(registration);if(values.password!==values.confirmPassword)throw new Error('兩次密碼不同，請再確認。');const result=await api('/api/user/register',json('POST',values));if(result.verificationRequired){sessionStorage.setItem('colorlab:pending-email',values.email);dirty=false;showCompletion('registration',()=>{location.hash='verification';notify(result.message);});return;}throw new Error('請重新整理後再試，註冊服務正在更新。');});};
   const profile=main.querySelector('#profile-form');
   bindOccupation(profile);
   if(profile){profile.querySelector('[data-reset]').onclick=()=>{profile.reset();dirty=false;};profile.onsubmit=event=>{event.preventDefault();saveForm(profile,async()=>{const values=data(profile);if(values.password!==undefined&&values.password!==values.confirmPassword)throw new Error('兩次新密碼不同。');const admin=current==='admin-profile';if(admin&&values.password&&!values.currentPassword)throw new Error('修改密碼時請輸入目前密碼。');const result=await api('/api/'+(admin?'admin':'user')+'/update-profile',json('PUT',values,admin?'admin':'user'));if(admin&&result.passwordChanged){dirty=false;clearSession();location.assign('/app/account.html#admin-login');return;}updateSessionUser(result.user,admin?'admin':'user');await render();notify('資料已儲存。');});};}

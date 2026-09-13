@@ -7,6 +7,7 @@ const fs = require('fs');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const {claimIllustration} = require('../services/contentIllustration');
+const { getJwtSecret } = require('../config/jwtSecret');
 function metadata(body) {
  const result={};
  for(const key of ['sourceName','contentKind','registrationUrl','sourcePublishedAt','sourceCheckedAt']) if(typeof body[key]==='string')result[key]=body[key].slice(0,2000);
@@ -20,7 +21,7 @@ const adminProtect = async (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            const decoded = jwt.verify(token, getJwtSecret());
             if(decoded.role!=='admin')return res.status(403).json({message:'僅管理員可使用'});
             const admin = await Admin.findById(decoded.id).select('-password');
             if (!admin) return res.status(403).json({ message: '無權限訪問' });
@@ -49,10 +50,11 @@ const storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
+        const extension = ({'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp'})[file.mimetype];
+        cb(extension ? null : new Error('僅接受 JPG、PNG 或 WebP 圖片'), extension ? uniqueSuffix + extension : undefined);
     }
 });
-const upload = multer({ storage: storage });
+const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024, files: 1, fields: 0, parts: 1, fieldNameSize: 50 } });
 
 // 取得最新/一般資訊（可分類type/news/common）
 router.get('/', async (req, res) => {

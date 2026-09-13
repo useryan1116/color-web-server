@@ -28,6 +28,7 @@
 .account-app .back-link { display:inline-flex; align-items:center; gap:8px; min-height:44px; color:var(--muted); text-decoration:none; font-size:14px; margin-bottom:20px; }
 .account-app .panel { background:var(--panel); border:1px solid var(--line); border-radius:24px; padding:30px; min-width:0; }
 .account-app .panel + .panel { margin-top:24px; }
+.account-app .security-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-bottom:24px}.account-app .security-summary .panel{margin:0}.account-app .security-unknown{border-color:#d8b96c;background:#fffaf0}.account-app .security-risks{display:grid;gap:14px}.account-app .security-risks article{padding:18px;border:1px solid var(--line);border-radius:14px}.account-app .security-risks h3{margin:10px 0 4px}.account-app .security-risks p{margin:0;color:var(--muted)}.account-app .security-badge{display:inline-flex;padding:4px 9px;border-radius:999px;background:var(--subtle);font-size:12px}.account-app .panel li{margin:8px 0;line-height:1.7}@media(max-width:700px){.account-app .security-summary{grid-template-columns:1fr}}
 .account-app .form-stack { display:grid; gap:22px; }
 .account-app .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px; }
 .account-app .field { display:flex; flex-direction:column; gap:8px; font-size:14px; color:var(--ink); min-width:0; text-align:left; }

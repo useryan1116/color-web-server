@@ -27,10 +27,14 @@ test('member update requires login and edits only the verified member',async()=>
   assert.equal(response.status,200);assert.equal((await response.json()).user.email,user.email);assert.equal(user.name,'Updated');
 });
 test('management records, stats and feedback are not public or accessible with a member token',async()=>{
-  for(const path of ['/test-records','/test-types','/data-stats','/feedbacks','/records/'+'3'.repeat(24)]){
+  for(const path of ['/test-records','/test-types','/data-stats','/feedbacks','/security-status','/records/'+'3'.repeat(24)]){
     assert.equal((await fetch(base+'/api/admin'+path)).status,401,path);
     assert.equal((await fetch(base+'/api/admin'+path,{headers:headers('user')})).status,403,path);
   }
+});
+test('administrator can read the security status without attack-detection overclaim',async()=>{
+  const response=await fetch(base+'/api/admin/security-status',{headers:headers('admin')});
+  assert.equal(response.status,200);const data=await response.json();assert.equal(data.detection.status,'unknown');assert.equal(data.dependencyAudit.after.total,0);
 });
 test('administrator can read a full record; malformed IDs are rejected',async()=>{
   assert.equal((await fetch(base+'/api/admin/records/'+'3'.repeat(24),{headers:headers('admin')})).status,200);

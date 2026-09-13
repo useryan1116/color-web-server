@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { getJwtSecret } = require('../config/jwtSecret');
 
 const adminSchema = new mongoose.Schema({
     sessionVersion: { type: Number, default: 0 },
@@ -60,7 +61,7 @@ adminSchema.methods.matchPassword = async function (enteredPassword) {
 
 // 生成 JWT Token
 adminSchema.methods.generateToken = function() {
-    return jwt.sign({ id: this._id, role: 'admin', sessionVersion: this.sessionVersion || 0 }, process.env.JWT_SECRET || 'your-secret-key', {
+    return jwt.sign({ id: this._id, role: 'admin', sessionVersion: this.sessionVersion || 0 }, getJwtSecret(), {
         expiresIn: '30d'
     });
 };

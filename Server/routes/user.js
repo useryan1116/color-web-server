@@ -5,8 +5,10 @@ const jwt = require('jsonwebtoken');
 const Feedback = require('../models/Feedback');
 const TestRecord = require('../models/TestRecord');
 const emailVerification = require('../services/emailVerification');
+const { getJwtSecret } = require('../config/jwtSecret');
 
 const router = express.Router();
+const registrationResponse = { verificationRequired: true, message: '若帳號可建立或仍需驗證，請查看信箱；未收到時可使用重新寄送功能。' };
 // Guest records stay on their originating browser; unproven guest IDs cannot be transferred.
 router.all('/sync-guest-records', (_req, res) => {
     res.set('Cache-Control', 'no-store').status(410).json({ message: '舊版訪客紀錄同步已停用，既有紀錄不受影響。' });
@@ -30,22 +32,6 @@ router.post('/email-verification/request', protect, emailVerification.limitReque
     catch (error) { res.status(error.status || 503).json({ message: error.status ? error.message : '暫時無法寄送，請稍後再試。' }); }
 });
 
-// 檢查電子郵件是否已註冊
-router.get('/check-email', async (req, res) => {
-    try {
-        const { email } = req.query;
-        if (!email) {
-            return res.status(400).json({ message: '請提供電子郵件' });
-        }
-
-        const existingUser = await User.findOne({ email });
-        return res.json({ exists: !!existingUser });
-    } catch (error) {
-        console.error('❌ 檢查電子郵件錯誤:', error);
-        res.status(500).json({ message: '伺服器錯誤，請稍後再試' });
-    }
-});
-
 // 註冊
 router.post('/register', emailVerification.limitRequest, async (req, res) => {
     try {
@@ -60,11 +46,11 @@ router.post('/register', emailVerification.limitRequest, async (req, res) => {
             return res.status(400).json({ message: '請填寫所有必要欄位' });
         }
 
+        if (!emailVerification.configured()) return res.status(503).json({ message: '驗證信服務尚未準備好，請稍後再註冊。' });
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ message: '此電子郵件已被註冊；若尚未驗證，請使用「重新寄送驗證信」。' });
+            return res.status(202).json(registrationResponse);
         }
-        if (!emailVerification.configured()) return res.status(503).json({ message: '驗證信服務尚未準備好，請稍後再註冊。' });
 
         // 處理性別值的轉換
         let processedGender = 'unknown';
@@ -91,13 +77,14 @@ router.post('/register', emailVerification.limitRequest, async (req, res) => {
         await newUser.save();
 
         try {
-            const sent = await emailVerification.sendVerification(newUser);
-            res.status(202).json({ ...sent, verificationRequired: true, email, message: '驗證信已寄出，請完成驗證後再登入。' });
+            await emailVerification.sendVerification(newUser);
+            res.status(202).json(registrationResponse);
         } catch {
-            res.status(202).json({ verificationRequired: true, mailSent: false, email, message: '帳號已保留，但驗證信尚未成功寄出。請等候 60 秒後重新寄送。' });
+            res.status(202).json(registrationResponse);
         }
 
     } catch (error) {
+        if (error?.code === 11000) return res.status(202).json(registrationResponse);
         console.error('Registration failed:', error.name);
         res.status(500).json({ message: '伺服器錯誤，請稍後再試' });
     }
@@ -225,7 +212,7 @@ async function protect(req, res, next) {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            const decoded = jwt.verify(token, getJwtSecret());
             if (decoded.role !== 'user') return res.status(403).json({ message: '請使用會員帳號' });
             req.user = await User.findById(decoded.id).select('-password');
             if (!req.user) return res.status(401).json({ message: '請重新登入' });

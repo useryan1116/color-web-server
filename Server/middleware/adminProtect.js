@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { getJwtSecret } = require('../config/jwtSecret');
 const Admin = require('../models/Admin');
 
 module.exports = async function adminProtect(req, res, next) {
@@ -10,7 +11,7 @@ module.exports = async function adminProtect(req, res, next) {
 
     try {
         const token = authorization.slice(7);
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        const decoded = jwt.verify(token, getJwtSecret());
         const admin = await Admin.findById(decoded.id).select('-password');
 
         if (!admin) {

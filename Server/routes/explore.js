@@ -1,5 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const { getJwtSecret } = require('../config/jwtSecret');
 const User = require('../models/User');
 const Admin = require('../models/Admin');
 const TestQuestion = require('../models/TestQuestion');
@@ -33,7 +34,7 @@ router.post('/guest-result-feedback', feedback.limit, handle(async(req,res)=>{
 router.use(async (req, res, next) => {
   try {
     const token = req.headers.authorization?.match(/^Bearer (\S+)$/)?.[1];
-    const payload = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    const payload = jwt.verify(token, getJwtSecret());
     if (!['user', 'admin'].includes(payload.role)) return res.status(403).json({ message: '請使用會員或管理員帳號作答。' });
     req.memberRole = payload.role;
     if (payload.role === 'admin') {

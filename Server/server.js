@@ -3,8 +3,6 @@ const express = require('express');
 const cors = require('cors');
 const compression = require('compression');
 const path = require('path');
-const fs = require('fs/promises');
-const { createCanvas } = require('@napi-rs/canvas');
 
 // 你自己的模組
 const connectDB = require('./config/db');
@@ -41,9 +39,6 @@ const LAUNCHER_FILE = path.join(__dirname, '..', 'launcher-site', 'index.html');
 const LAUNCHER_LOGO_FILE = path.join(__dirname, '..', 'launcher-site', 'colorlab-mark.svg');
 const REPORTS_DIR = path.join(STATIC_DIR, 'test', 'detailed-reports');
 const PDFJS_BUILD_DIR = path.join(__dirname, 'node_modules', 'pdfjs-dist', 'legacy', 'build');
-const REPORT_IMAGE_CACHE_LIMIT = 40;
-const reportImageCache = new Map();
-let pdfjsModulePromise;
 const VALID_MBTI_TYPES = new Set([
   'ENFJ', 'ENFP', 'ENTJ', 'ENTP',
   'ESFJ', 'ESFP', 'ESTJ', 'ESTP',
@@ -100,12 +95,6 @@ app.get('/login-admin.html', (_req, res) => {
   res.redirect('/main/login-user.html?mode=admin');
 });
 
-// 允許以 /main/xxx.html 直接存取（例如 /main/register.html）
-app.get('/main/:page', (req, res, next) => {
-  const file = path.join(STATIC_DIR, 'main', req.params.page);
-  res.sendFile(file, (err) => (err ? next() : null));
-});
-
 // 健康檢查（雲端監測、你自己也可測）
 app.get('/health', (_req, res) => res.send('OK'));
 
@@ -144,68 +133,6 @@ function handleReportError(error, res, next) {
   return next(error);
 }
 
-function loadServerPdfjs() {
-  if (!pdfjsModulePromise) {
-    pdfjsModulePromise = import('pdfjs-dist/legacy/build/pdf.mjs');
-  }
-  return pdfjsModulePromise;
-}
-
-function cacheReportImage(key, value) {
-  if (reportImageCache.has(key)) reportImageCache.delete(key);
-  reportImageCache.set(key, value);
-  while (reportImageCache.size > REPORT_IMAGE_CACHE_LIMIT) {
-    reportImageCache.delete(reportImageCache.keys().next().value);
-  }
-}
-
-async function renderReportPage(reportPath, pageNumber) {
-  const cacheKey = `${reportPath}:${pageNumber}`;
-  const cached = reportImageCache.get(cacheKey);
-  if (cached) {
-    reportImageCache.delete(cacheKey);
-    reportImageCache.set(cacheKey, cached);
-    return cached;
-  }
-
-  const [pdfjsLib, fileBuffer] = await Promise.all([
-    loadServerPdfjs(),
-    fs.readFile(reportPath)
-  ]);
-  const pdf = await pdfjsLib.getDocument({
-    data: new Uint8Array(fileBuffer),
-    disableWorker: true,
-    useSystemFonts: true
-  }).promise;
-
-  try {
-    if (pageNumber > pdf.numPages) {
-      const error = new Error('Report page not found.');
-      error.statusCode = 404;
-      throw error;
-    }
-
-    const page = await pdf.getPage(pageNumber);
-    const viewport = page.getViewport({ scale: 1.5 });
-    const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
-    await page.render({
-      canvasContext: canvas.getContext('2d'),
-      viewport
-    }).promise;
-
-    const result = {
-      buffer: canvas.toBuffer('image/webp', 82),
-      totalPages: pdf.numPages,
-      width: canvas.width,
-      height: canvas.height
-    };
-    cacheReportImage(cacheKey, result);
-    return result;
-  } finally {
-    await pdf.destroy();
-  }
-}
-
 // Preview the original report inside the ColorLab report viewer.
 app.get('/api/reports/preview/:mbti/:colors', (req, res, next) => {
   const report = resolveReportFile(req, res);
@@ -232,32 +159,6 @@ app.get('/api/reports/download/:mbti/:colors', (req, res, next) => {
   }, (error) => handleReportError(error, res, next));
 });
 
-// Render one report page as a lightweight image for iPhone/PWA preview compatibility.
-app.get('/api/reports/page/:mbti/:colors/:pageNumber', async (req, res, next) => {
-  const report = resolveReportFile(req, res);
-  if (!report) return;
-
-  const pageNumber = Number.parseInt(req.params.pageNumber, 10);
-  if (!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > 20) {
-    return res.status(400).json({ message: 'Invalid report page.' });
-  }
-
-  try {
-    const image = await renderReportPage(report.reportPath, pageNumber);
-    res.set({
-      'Content-Type': 'image/webp',
-      'Content-Length': String(image.buffer.length),
-      'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
-      'X-Report-Pages': String(image.totalPages),
-      'X-Report-Width': String(image.width),
-      'X-Report-Height': String(image.height)
-    });
-    return res.send(image.buffer);
-  } catch (error) {
-    return handleReportError(error, res, next);
-  }
-});
-
 // ---- API 路由（保持你原本的）----
 app.use('/api/survey', surveyRoutes);
 app.use('/api/user', userRoutes);
@@ -277,6 +178,7 @@ app.use((err, _req, res, _next) => {
 const PORT = process.env.PORT || 3000;          // Render 會提供 PORT
 
 async function startServer() {
+  require('./config/jwtSecret').getJwtSecret();
   await connectDB();
   await seedDefaultContent();
   await require('./services/publishOfficialContent')();

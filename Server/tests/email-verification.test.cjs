@@ -47,7 +47,7 @@ test('existing members remain optional and new registrations cannot opt out or o
   const legacy = new User({ email: 'legacy@example.invalid', password: 'fixture-password' }); await legacy.save();
   assert.equal(service.needsVerification(legacy), false); assert.ok(legacy.generateToken());
   const r = await post('/register', { name:'新會員',gender:'unknown',birthDate:'2000-01-01',email: ' NEW@example.invalid ', password: 'fixture-password', emailVerificationRequired: false, emailVerifiedAt: new Date() });
-  assert.equal(r.status, 202); const data = await r.json(); assert.equal(data.mailSent, true); assert.equal(data.token, undefined);
+  assert.equal(r.status, 202); const data = await r.json(); assert.equal(data.mailSent, undefined); assert.equal(data.email, undefined); assert.equal(data.token, undefined);
   const user = member('new@example.invalid'); assert.equal(service.needsVerification(user), true); assert.throws(() => user.generateToken());
   assert.equal(user.phone, '', 'phone can be omitted on a valid registration');
   assert.equal((await post('/login', { email: user.email, password: user.password })).status, 403);
@@ -80,13 +80,19 @@ test('resend requires ownership, keeps the existing password, and invalidates pr
 test('provider failure retains a pending account; missing configuration creates no account', async () => {
   mailFailure = true;
   const r = await post('/register', { name:'新會員',gender:'unknown',birthDate:'2000-01-01',email: 'failed@example.invalid', password: 'fixture-password' });
-  assert.equal(r.status, 202); assert.equal((await r.json()).mailSent, false);
+  assert.equal(r.status, 202); assert.equal((await r.json()).mailSent, undefined);
   assert.equal(service.needsVerification(member('failed@example.invalid')), true);
   assert.equal((await post('/login', { email: 'failed@example.invalid', password: 'fixture-password' })).status, 403);
   delete process.env.BREVO_API_KEY;
   assert.equal((await post('/register', { name:'新會員',gender:'unknown',birthDate:'2000-01-01',email: 'unavailable@example.invalid', password: 'fixture-password' })).status, 503);
   assert.equal(member('unavailable@example.invalid'), undefined);
   process.env.BREVO_API_KEY = 'fixture-not-a-real-key'; mailFailure = false;
+});
+test('registration does not reveal whether an email already exists', async () => {
+  const body={name:'Existing',gender:'unknown',birthDate:'2000-01-01',email:'legacy@example.invalid',password:'fixture-password'};
+  const existing=await post('/register',body);assert.equal(existing.status,202);
+  assert.deepEqual(await existing.json(),{verificationRequired:true,message:'若帳號可建立或仍需驗證，請查看信箱；未收到時可使用重新寄送功能。'});
+  const check=await realFetch(base+'/api/user/check-email?email='+encodeURIComponent(body.email));assert.equal(check.status,404);
 });
 test('simultaneous confirmation succeeds only once and malformed links never authenticate', async () => {
   const user = member('failed@example.invalid'); user.emailSendAfter = new Date(0); await service.sendVerification(user);

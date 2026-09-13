@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
+const { getJwtSecret } = require('../config/jwtSecret');
 const User = require('../models/User');
 
 // 驗證 Token 中間件
@@ -10,7 +11,7 @@ const protect = async (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            const decoded = jwt.verify(token, getJwtSecret());
             req.user = await User.findById(decoded.id).select('-password');
             if (!req.user || decoded.role !== 'user') return res.status(401).json({ message: '請重新登入會員。' });
             if (!require('../services/sessionVersion')(decoded, req.user, 'user')) return res.status(401).json({ message: '登入已失效，請重新登入。' });

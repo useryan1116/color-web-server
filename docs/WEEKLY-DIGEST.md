@@ -1,6 +1,6 @@
 # ColorLab 每週資訊待審與摘要信
 
-本機 Codex 每小時補查，本週未整理才执行；需電腦、網路及 Codex 可執行。不是關機仍運作的雲端排程，沒有新增付費服務。
+本機 Codex 每天上午九點（Asia/Taipei）檢查本週進度；週一開啟新週別，同週最多完成一份。漏跑或失敗後，後續每日只接續未完成步驟；完成後安靜略過，不重複蒐集或寄信。需電腦、網路及 Codex 可執行；不是關機仍運作的雲端排程，沒有新增付費服務。
 流程：查核官方來源 → 保存 JSON/Markdown → 同步後台待審 → 寄 Email memo → 管理員勾選确认核准 → 發布／更正／下架。
 後台入口：https://colorlab-start.onrender.com/app/account.html#content-review
 
@@ -66,3 +66,13 @@ node --test Server/tests/content-review.integration.cjs
 
 整合測試只啟動隔離本機 MongoDB replica set，首次下載測試用 MongoDB，不接正式資料庫。
 涵蓋權限、去重、並行核准、交易回滾、下架恢復與過期過濾。
+
+## 獨立資安檢查軌
+
+每天觸發時，週報整理與資安檢查分開判定；週報已完成只能略過週報流程，不能略過資安流程。資安軌每週至少完成一次，若程式或鎖檔雜湊改變則重新檢查。
+
+資安軌只做防禦性檢查：完整 npm 依賴稽核、官方公告比對、權限與敏感路由回歸測試、`git diff --check`，以及管理員「資安狀態」摘要更新。禁止對正式站進行攻擊測試，也不讀取會員內容、憑證或正式資料庫。
+
+檢查結果保存於 `tmp/security-review/YYYY-MM-DD.json`，包含 weekStart、checkedAt、commit、packageLockHash、auditSummary、officialAdvisories、testSummary 與 status。當週結果與目前程式及鎖檔一致才算完成；重大新增風險、失敗、完成或需要人工處理時通知，其餘不重複通知。
+
+管理員頁面若沒有 WAF、SIEM 或安全事件紀錄，攻擊偵測必須顯示「未知」，不能因弱點已修補就推論沒有遭受攻擊。自動檢查不得自行建立管理員、改正式資料、套用高風險更新或部署未經驗證的修補。
