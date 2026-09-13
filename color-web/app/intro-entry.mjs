@@ -1,9 +1,10 @@
+let enteredAbout=false;
+window.addEventListener('hashchange',()=>{if(location.hash!=='#about')enteredAbout=false;});
 export function showIntro() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || location.hash!=='#about') return;
-  // Share one visit across internal pages; reopening/reloading gets a fresh shell.
-  const visit=window.top.document.documentElement;
-  if(visit.hasAttribute('data-colorlab-intro-seen'))return;
-  visit.setAttribute('data-colorlab-intro-seen','');
+  // Each route entry can replay; duplicate renders on the same entry cannot.
+  if(enteredAbout)return;
+  enteredAbout=true;
   const dialog=document.createElement('dialog');
   dialog.setAttribute('aria-label','ColorLab 開場');
   dialog.style.cssText='position:fixed;inset:0;max-width:none;max-height:none;width:100vw;height:100dvh;margin:0;padding:0;border:0;background:#faf8f2;overflow:hidden;';
@@ -31,7 +32,7 @@ export function showIntro() {
   // The approved Remotion composition is rendered ahead of time, not on the phone.
   video=document.createElement('video');video.muted=true;video.defaultMuted=true;video.playsInline=true;
   video.preload='auto';video.setAttribute('aria-label','ColorLab 四色角色開場');
-  video.src=innerHeight>innerWidth?'/assets/intro/about-mobile-4k120-v4.mp4':'/assets/intro/about-desktop-4k120-v4.mp4';
+  video.src=innerHeight>innerWidth?'/assets/intro/about-mobile-4k120-v6.mp4':'/assets/intro/about-desktop-4k120-v6.mp4';
   video.style.cssText='width:100%;height:100%;object-fit:contain';
   video.addEventListener('ended',close,{once:true});video.addEventListener('error',close,{once:true});
   dialog.querySelector('[data-intro-stage]').replaceChildren(video);

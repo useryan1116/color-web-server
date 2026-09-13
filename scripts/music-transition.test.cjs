@@ -25,15 +25,15 @@ function player(){
     async route(hash){location.hash=hash;docEvents['colorlab-page-route']();await settle();},
     mute(){elements[0].onclick();},defer(){defer=true;}};
 }
-test('route crossfade maintains level instead of fading out before new track rises',async()=>{
+test('route transition never mixes two audible songs and finishes promptly',async()=>{
   const p=player();await p.settle();await p.advance(3000);
   await p.route('#about');
-  for(let i=0;i<6;i++){
-    await p.advance(300);
-    const power=Math.hypot(...p.audios.filter(a=>!a.paused).map(a=>a.volume));
-    assert.ok(power>=.22&&power<=.26,`crossfade level at ${(i+1)*300} ms was ${power}`);
+  for(let i=0;i<12;i++){
+    await p.advance(50);
+    assert.ok(p.audios.filter(a=>!a.paused&&a.volume>.001).length<=1,'only one song may be audible');
   }
   assert.equal(p.audios.length,1);
+  assert.equal(p.audios[0].volume,.24);
 });
 test('slow new track keeps previous audible and duplicate route events share one pending load',async()=>{
   const p=player();await p.settle();await p.advance(3000);p.defer();
@@ -51,11 +51,22 @@ test('muting during a crossfade silences all outgoing and incoming tracks prompt
 });
 test('switching back resumes each track at its own last position',async()=>{
   const p=player();await p.settle();await p.advance(3000);p.audios[0].currentTime=18;
-  await p.route('#about');await p.advance(1800);p.audios[0].currentTime=7;
-  await p.route('#home');await p.advance(1800);
+  await p.route('#about');await p.advance(250);await p.advance(350);p.audios[0].currentTime=7;
+  await p.route('#home');await p.advance(250);await p.advance(350);
   assert.equal(p.audios[0].currentTime,18,'home must resume, not restart');
-  await p.route('#about');await p.advance(1800);
+  await p.route('#about');await p.advance(250);await p.advance(350);
   assert.equal(p.audios[0].currentTime,7,'about has a separate position');
+});
+test('rapid return during the outgoing fade restores the original song without a late pause',async()=>{
+  const p=player();await p.settle();await p.advance(3000);
+  const home=p.audios[0];home.currentTime=15;
+  await p.route('#about');await p.advance(100);await p.route('#home');
+  for(let i=0;i<12;i++){
+    await p.advance(50);
+    assert.ok(p.audios.filter(a=>!a.paused&&a.volume>.001).length<=1);
+  }
+  assert.equal(p.audios.length,1);assert.equal(p.audios[0],home);
+  assert.equal(home.paused,false);assert.equal(home.volume,.24);assert.equal(home.currentTime,15);
 });
 test('turning music off and on preserves the last position',async()=>{
   const p=player();await p.settle();await p.advance(3000);p.audios[0].currentTime=23;

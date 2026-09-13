@@ -57,7 +57,7 @@ async function start(userInitiated=false) {
   if(pending?.track===track)return;
   if(pending){++generation;pending.audio.pause();pending.audio.remove();pending=null;}
   if(active?.track===track){
-    if(!active.audio.paused)return;
+    if(!active.audio.paused){fade(active.audio,.24,180);return;}
     const audio=active.audio,revision=++generation;pending=active;
     try{await audio.play();if(revision!==generation){audio.pause();return;}pending=null;needsGesture=false;label();fade(audio,.24,350);}
     catch(error){if(revision!==generation)return;pending=null;needsGesture=error.name==='NotAllowedError';label();}
@@ -74,12 +74,14 @@ async function start(userInitiated=false) {
   try{
     await audio.play();
     if(revision!==generation){audio.pause();audio.remove();return;}
+    // Prepare silently, then hand over: different melodies must not overlap.
+    if(previous&&!previous.audio.paused)await fade(previous.audio,0,250);
+    if(revision!==generation){audio.pause();audio.remove();return;}
+    if(previous){previous.audio.pause();previous.audio.remove();}
     active={track,audio};pending=null;
     button.title='配樂播放中';
     needsGesture=false;label();
-    const crossfade=previous&&!previous.audio.paused;
-    fade(audio,.24,crossfade?1800:userInitiated?350:3000,crossfade?'in':'smooth');
-    if(previous)fade(previous.audio,0,crossfade?1800:250,crossfade?'out':'smooth').then(()=>{previous.audio.pause();previous.audio.remove();});
+    fade(audio,.24,previous||userInitiated?350:3000);
   }catch(error){
     audio.pause();audio.remove();
     if(revision!==generation)return;
