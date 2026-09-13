@@ -4,21 +4,29 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#fff8f6">
-  <meta name="description" content="在 ColorLab 醒來以前，調一杯屬於今天的心情色。">
+  <meta name="description" content="在 ColorLab 醒來以前，替今天配一點顏色。">
   <link rel="icon" href="./colorlab-mark.svg" type="image/svg+xml">
   <link rel="preload" href="./colorlab-mark.svg" as="image" type="image/svg+xml">
   <link rel="preconnect" href="https://color-web-server-jprj.onrender.com">
   <link rel="dns-prefetch" href="https://color-web-server-jprj.onrender.com">
-  <title>ColorLab｜調一杯今日心情色</title>
+  <title>ColorLab｜替今天配一點顏色</title>
   <link rel="stylesheet" href="/app/characters.css">
+  <link rel="stylesheet" href="/app/handwriting.css">
   <style>
     [hidden] { display: none !important; }
-    .compact-progress { display: none; }
-    @media (max-width: 860px) {
-      .compact-progress { display: flex; align-items: center; gap: 12px; margin: 14px 22px 0; font-size: .72rem; color: #725561; }
-      .compact-progress span { flex: 1; height: 5px; border-radius: 5px; background: #f5e5e8; overflow: hidden; }
-      .compact-progress i { display: block; width: var(--wake-progress, 8%); height: 100%; background: #d57d95; transition: width .5s ease; }
-    }
+    #promptText { font-family: ColorLabHandwriting, sans-serif; font-size: clamp(23px, 2.2vw, 27px); line-height: 1.5; font-weight: 400; text-wrap:pretty; }
+    #pageTitle{max-width:none;font-family:ColorLabHandwriting,sans-serif;font-size:clamp(26px,3vw,36px);font-weight:400;line-height:1.45;letter-spacing:0}
+    #pageTitle>span{display:block}
+    #pageTitle em{display:inline-block;white-space:nowrap}
+    #pageTitle .wake-handwritten{font-family:ColorLabHandwriting,sans-serif;font-size:clamp(26px,3vw,36px);font-weight:400;white-space:nowrap;line-height:1.4;margin-top:8px}
+    .wake-gathering{position:absolute;inset:15% 5% 12%;display:flex;align-items:flex-end;justify-content:center;gap:2%;z-index:3;pointer-events:none}
+    .wake-gathering .wake-character{position:relative;inset:auto;flex:0 1 46%;width:46%;min-width:0;height:100%;animation:gather-in .6s cubic-bezier(.22,1,.36,1) both}
+    .wake-gathering .wake-character img{width:100%;height:100%;object-fit:contain;object-position:center bottom;animation:none}
+    .wake-gathering[data-count="3"] .wake-character{flex-basis:30%}
+    .wake-gathering[data-count="4"] .wake-character{flex-basis:23%}
+    .wake-gathering[data-count="3"] .wake-character:nth-child(2),.wake-gathering[data-count="4"] .wake-character:nth-child(2),.wake-gathering[data-count="4"] .wake-character:nth-child(3){padding-bottom:12px}
+    @keyframes gather-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+    @media(prefers-reduced-motion:reduce){.wake-gathering .wake-character{animation:none}}
     :root {
       font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
       color: #413b41;
@@ -193,7 +201,7 @@
     .prompt-refresh:hover { transform: translateY(-2px); background: #f2e5e9; }
     .prompt-refresh:focus-visible, .swatch:focus-visible, .reset-mix:focus-visible, .mix-stage:focus-visible { outline: 3px solid rgba(239, 113, 128, .32); outline-offset: 3px; }
 
-    .prompt-text { min-height: 3.2em; margin: 14px 0 2px; font-size: 1rem; font-weight: 750; line-height: 1.65; }
+    .prompt-text { min-height: 3.2em; margin: 14px 0 2px; font-size: 1rem; font-weight: 750; line-height: 1.65; text-wrap: balance; }
     .prompt-text.is-changing { animation: prompt-swap .34s ease; }
 
     .service-state {
@@ -288,6 +296,10 @@
 
     .mix-stage::before { width: 270px; height: 270px; }
     .mix-stage::after { width: 208px; height: 208px; animation-direction: reverse; animation-duration: 12s; }
+    #mixStage { background: #fffdf9; }
+    #mixStage::before { inset: 0; width: 100%; height: 100%; border: 0; border-radius: 0; animation: none; background: var(--selected-paint, #ef7180); opacity: .24; mask: url('/app/wake-crayon.svg') 0 0 / 360px 360px; -webkit-mask: url('/app/wake-crayon.svg') 0 0 / 360px 360px; pointer-events: none; z-index: 0; }
+    #mixStage::after { display: none; }
+    #mixOrb { display: none; }
 
     .mix-orb {
       position: relative;
@@ -497,13 +509,12 @@
       </div>
       <span class="top-note">COLOR MOOD LAB</span>
     </header>
-    <div class="compact-progress" aria-hidden="true">準備你的探索空間<span><i></i></span></div>
 
     <div class="layout">
       <section class="intro" aria-labelledby="pageTitle">
         <p class="eyebrow">A SMALL PAUSE FOR YOU</p>
-        <h1 id="pageTitle">等候的時候，先替今天調一個<em>顏色</em></h1>
-        <p class="lead">ColorLab 正在準備你的探索空間。這段小小的空檔，就留給自己：選兩種顏色，看看它們會變成什麼心情。</p>
+        <h1 id="pageTitle"><span>等候的時候，</span><span class="wake-handwritten">先替今天調一個<em>顏色</em></span></h1>
+        <p class="lead">ColorLab 正在準備你的探索空間。這段小小的空檔，就留給自己：選一到四種顏色，讓色彩與夥伴一起相聚。</p>
 
         <div class="service-state" id="serviceState" role="status" aria-live="polite">
           <span class="state-orbit" aria-hidden="true"></span>
@@ -524,6 +535,7 @@
             </button>
           </div>
           <p class="prompt-text" id="promptText">如果今天是一種顏色，你希望它帶給你什麼感受？</p>
+          <button class="prompt-refresh" id="pausePrompts" type="button" aria-pressed="false">暫停輪播</button>
         </div>
       </section>
 
@@ -531,13 +543,13 @@
         <div class="lab-heading">
           <div>
             <p class="lab-kicker">TODAY'S COLOR FORMULA</p>
-            <h2 id="labTitle">調一杯今日心情色</h2>
+            <h2 id="labTitle">替今天配一點顏色</h2>
           </div>
           <div class="formula-dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
         </div>
 
         <div class="mix-stage" id="mixStage" role="button" tabindex="0" aria-label="互動色彩畫布，點擊可以灑下色彩">
-          <span class="report-character wake-character"><img id="wakeCharacter" src="/assets/characters/red.webp" width="160" height="225" alt="紅色報告角色"></span>
+          <div class="wake-gathering" id="wakeGathering" data-count="1"><span class="report-character wake-character" data-color="coral"><img src="/assets/characters/red.webp" width="160" height="225" alt="紅色報告角色"></span></div>
           <span class="float-chip one">感受</span>
           <span class="float-chip two">個性</span>
           <span class="float-chip three">此刻</span>
@@ -548,14 +560,14 @@
 
         <div class="mix-copy" aria-live="polite">
           <p class="mix-name" id="mixName">今天想從哪一種顏色開始？</p>
-          <p class="mix-message" id="mixMessage">點選下方兩種顏色，或在畫布上灑下幾滴色彩。</p>
+          <p class="mix-message" id="mixMessage">選幾種顏色，就邀請幾位夥伴；最多四位，再點一次可以取消。</p>
         </div>
 
-        <div class="swatches" role="group" aria-label="選擇兩種心情色">
-          <button class="swatch" type="button" data-color="coral" aria-pressed="false" style="--swatch:#ef7180"><span class="swatch-dot"></span><span>珊瑚紅</span></button>
-          <button class="swatch" type="button" data-color="sun" aria-pressed="false" style="--swatch:#f5ca66"><span class="swatch-dot"></span><span>暖陽黃</span></button>
-          <button class="swatch" type="button" data-color="sky" aria-pressed="false" style="--swatch:#80c7e8"><span class="swatch-dot"></span><span>天空藍</span></button>
-          <button class="swatch" type="button" data-color="leaf" aria-pressed="false" style="--swatch:#a8d584"><span class="swatch-dot"></span><span>嫩葉綠</span></button>
+        <div class="swatches" role="group" aria-label="選擇一到四種顏色">
+          <button class="swatch" type="button" data-color="coral" aria-pressed="false" style="--swatch:#ef7180"><span class="swatch-dot"></span><span>紅色</span></button>
+          <button class="swatch" type="button" data-color="sun" aria-pressed="false" style="--swatch:#f5ca66"><span class="swatch-dot"></span><span>黃色</span></button>
+          <button class="swatch" type="button" data-color="sky" aria-pressed="false" style="--swatch:#80c7e8"><span class="swatch-dot"></span><span>藍色</span></button>
+          <button class="swatch" type="button" data-color="leaf" aria-pressed="false" style="--swatch:#a8d584"><span class="swatch-dot"></span><span>綠色</span></button>
         </div>
         <button class="reset-mix" id="resetMix" type="button" hidden>重新調一杯</button>
       </section>
@@ -610,20 +622,140 @@
       };
 
       const mixes = {
-        'coral+sun': ['晨光珊瑚', '你把行動力與樂觀放在一起，今天適合勇敢開始。'],
-        'coral+sky': ['晚霞粉藍', '熱情與理性剛好平衡，適合說出真正的想法。'],
-        'coral+leaf': ['玫瑰花園', '溫柔裡帶著力量，照顧別人時也別忘了自己。'],
-        'sky+sun': ['晴空汽水', '輕盈、明亮又有想像力，讓好奇心帶你往前。'],
-        'sun+leaf': ['初夏草地', '安定中帶著期待，適合完成一件小小的好事。'],
-        'sky+leaf': ['湖畔薄荷', '清楚而平靜，慢一點也能看見更完整的方向。']
+        'coral+sun': ['暖意一下子亮了起來。', '紅色和黃色放在一起，暖暖的，也多了一點熱鬧與活力。'],
+        'coral+sky': ['熱鬧裡，留一點安靜。', '一暖一涼相遇，鮮明之中，也留了一點安靜的空間。'],
+        'coral+leaf': ['鮮明，也可以很柔和。', '紅色的鮮明襯著綠色的柔和，看起來有精神，又不太急促。'],
+        'sun+sky': ['像把窗輕輕打開了。', '藍色和黃色相襯，明亮、輕盈，像空間一下子打開了。'],
+        'sun+leaf': ['清新裡，多了一點暖。', '黃色替綠色添了一點暖意，清新裡帶著柔柔的明亮感。'],
+        'sky+leaf': ['讓四周慢慢靜下來。', '藍色與綠色靠在一起，清涼、柔和，整體感覺慢了下來。'],
+        'coral+sun+sky': ['明亮之間，透進一點涼。', '紅黃的暖意被藍色輕輕拉開，熱鬧的畫面多了些空氣感。'],
+        'coral+sun+leaf': ['暖暖的，也有新鮮感。', '紅色和黃色讓畫面亮起來，綠色穿插其中，像添了一點新芽的清爽。'],
+        'coral+sky+leaf': ['安靜中，有一點亮眼。', '藍綠帶來清涼的底色，紅色在其中格外鮮明，讓平靜的畫面有了起伏。'],
+        'sun+sky+leaf': ['輕輕的，像有風吹過。', '黃色照亮藍綠的清爽，三種顏色放在一起，明亮卻不顯得厚重。'],
+        'coral+sun+sky+leaf': ['不同的感覺，都能在一起。', '溫暖、清涼、明亮與柔和同時出現，彼此相襯，讓畫面多了豐富的層次。']
       };
 
       const prompts = [
-        '如果今天是一種顏色，你希望它帶給你什麼感受？',
-        '最近哪一個小瞬間，讓你覺得自己正在慢慢變好？',
-        '如果能把一種心情留給明天，你會選擇哪一種？',
-        '此刻的你，比較需要勇氣、平靜、溫暖，還是自由？',
-        '今天有什麼事情，值得送自己一個小小的肯定？'
+        '如果今天是一種顏色，你會選哪一種？',
+        '什麼顏色，讓你想到舒服的地方？',
+        '今天的天空，和你的心情像嗎？',
+        '想替此刻加一點暖色，還是涼色？',
+        '如果心情有深淺，現在會有多濃？',
+        '哪種顏色，讓你想多看一眼？',
+        '今天穿的顏色，是怎麼選的？',
+        '選兩個顏色，一個代表現在，一個代表期待。',
+        '有沒有一種顏色，最近才開始喜歡？',
+        '如果今天是一幅畫，你想留多少空白？',
+        '你喜歡顏色混在一起，還是各有位置？',
+        '哪種顏色，讓你想到一個人？',
+        '如果替房間添一個顏色，你想放在哪裡？',
+        '今天有哪個顏色，出乎意料地吸引你？',
+        '記憶裡的一頓飯，是什麼顏色？',
+        '你想用鮮明的色彩，還是淡淡的筆觸？',
+        '什麼顏色，像剛睡醒的早晨？',
+        '什麼顏色，像可以放鬆的晚上？',
+        '如果替今天畫一條線，它會往哪裡走？',
+        '你會用什麼顏色，畫出一個安靜角落？',
+        '此刻比較明顯的感受，是哪一種？',
+        '今天有沒有一刻，你鬆了一口氣？',
+        '現在的心情，和早上有什麼不同？',
+        '有什麼感覺，還不急著說清楚？',
+        '如果把今天的心情比作天氣，會是什麼？',
+        '你現在想說話，還是想安靜一下？',
+        '今天哪件小事，讓你的心情轉了個彎？',
+        '有沒有兩種不同的感受，同時在心裡？',
+        '如果感受有速度，此刻是快還是慢？',
+        '最近什麼時候，你笑得比較自在？',
+        '今天有什麼事，讓你有一點期待？',
+        '心裡有沒有一句話，還沒找到說出口的時機？',
+        '此刻的你，和昨天一樣嗎？',
+        '什麼聲音，會讓你的心情柔和一點？',
+        '哪一種氣味，容易帶你回到某段記憶？',
+        '最近有沒有什麼事，讓你好奇？',
+        '今天有什麼感受，是後來才發現的？',
+        '有沒有一個片刻，你想再停留一下？',
+        '如果替現在配一首歌，你想要什麼節奏？',
+        '此刻不一定要改變心情，你想先注意什麼？',
+        '現在的身體，哪個地方最需要休息？',
+        '你想喝一口水，還是伸個懶腰？',
+        '今天的步調，是你喜歡的速度嗎？',
+        '如果空出十分鐘，你想拿來做什麼？',
+        '最近有好好吃一頓喜歡的飯嗎？',
+        '什麼小習慣，會讓你覺得回到自己？',
+        '今天有沒有一件事，可以晚一點再做？',
+        '你需要的是休息，還是換個環境？',
+        '現在坐著的姿勢，舒服嗎？',
+        '今天有抬頭看看窗外嗎？',
+        '什麼樣的空間，讓你比較容易放鬆？',
+        '如果把手機放下一會兒，你想看見什麼？',
+        '今天有哪個聲音，你平常容易忽略？',
+        '你喜歡一個人充電，還是有人陪伴？',
+        '最近的睡前時間，你通常怎麼度過？',
+        '今天有什麼地方，讓你覺得太擠了？',
+        '如果少安排一件事，你想空下哪一段時間？',
+        '你想走一小段路，還是好好坐一會兒？',
+        '現在有什麼小調整，能讓你舒服一些？',
+        '今天的你，想把力氣留給什麼？',
+        '最近哪一次選擇，很像你自己的風格？',
+        '你比較喜歡先安排，還是邊走邊看？',
+        '今天有沒有一件事，是因為喜歡才去做？',
+        '什麼時候，你容易忘記看時間？',
+        '有沒有一件小事，你想換個做法試試？',
+        '你今天的選擇，和心裡想的一樣嗎？',
+        '最近對哪件事情，你的想法改變了？',
+        '如果不用急著選，你想多了解什麼？',
+        '你喜歡熟悉的路，還是偶爾繞一點遠路？',
+        '今天做了什麼，是你自己決定的？',
+        '有沒有一個喜好，你一直保留到現在？',
+        '什麼事情，你想照自己的速度學？',
+        '最近有沒有說過一次真心的「我喜歡」？',
+        '面對新事物，你通常先注意哪個部分？',
+        '如果只做一個小嘗試，你會選什麼？',
+        '有什麼事，你做起來比想像中自在？',
+        '你喜歡把事情做好，還是先看看會發生什麼？',
+        '哪個日常選擇，最能看出你的喜好？',
+        '如果今天能換一種節奏，你想怎麼開始？',
+        '有沒有一件事，你現在想先不決定？',
+        '最近誰的一句話，讓你記到現在？',
+        '和誰相處時，你不用一直想要說什麼？',
+        '今天你想有人陪，還是留一點自己的空間？',
+        '有什麼話，你希望別人先聽完？',
+        '什麼樣的關心，對你來說剛剛好？',
+        '如果想找人聊聊，你會想起誰？',
+        '最近有沒有收到一個小小的善意？',
+        '你喜歡別人怎麼和你打招呼？',
+        '今天有什麼事，你想和某個人分享？',
+        '什麼時候，你感覺自己的想法被聽見了？',
+        '相處時，你需要多少安靜的時間？',
+        '有沒有一個邀約，你想答應自己先想一想？',
+        '你通常怎麼讓別人知道自己需要休息？',
+        '什麼小舉動，會讓你覺得受到尊重？',
+        '最近有沒有一次談話，讓你看到不同角度？',
+        '如果送一句問候，你想送給誰？',
+        '你喜歡一起做事，還是一起什麼都不做？',
+        '有沒有一種陪伴，不需要說很多話？',
+        '什麼事情，你希望可以坦白說不？',
+        '今天你想替自己保留哪一點空間？',
+        '今天有哪個小細節，你想記下來？',
+        '最近學到的事情裡，哪一件最有趣？',
+        '有沒有一個地方，你還想再去一次？',
+        '如果明天留一點空白，你想讓什麼發生？',
+        '今天有什麼事，和原本想的不太一樣？',
+        '最近看過什麼，讓你想停下來欣賞？',
+        '如果替今天拍一張照片，你會拍什麼？',
+        '有沒有一件小事，做完就覺得踏實？',
+        '你想把今天的哪個片刻，帶到明天？',
+        '什麼事情，讓普通的一天有了不同？',
+        '如果寫一句話給今天的自己，你會寫什麼？',
+        '最近的你，有沒有多認識自己一點？',
+        '哪件以前在意的事，現在感覺不同了？',
+        '有什麼喜歡的事，你想再留一點時間給它？',
+        '今天的你，有沒有試著表達自己的需要？',
+        '如果這週是一張色票，最常出現哪個顏色？',
+        '你想收藏今天的一個聲音，還是一個畫面？',
+        '最近有什麼簡單的事，讓你覺得有意思？',
+        '下次停下來時，你想留意自己的哪個感受？',
+        '現在選的顏色，和剛進來時想的一樣嗎？'
       ];
 
       const root = document.documentElement;
@@ -642,7 +774,11 @@
       const progressText = document.getElementById('progressText');
 
       let selected = [];
-      let promptIndex = 0;
+      let promptDeck = [];
+      let lastPrompt = '';
+      const promptDeckKey = 'colorlab-prompt-deck-v1';
+      try { const saved=JSON.parse(sessionStorage.getItem(promptDeckKey)); if(Array.isArray(saved)&&saved.every(i=>Number.isInteger(i)&&i>=0&&i<prompts.length)&&new Set(saved).size===saved.length)promptDeck=saved; } catch {}
+      try { lastPrompt=sessionStorage.getItem('colorlab-prompt-last-v1')||''; } catch {}
       let completed = false;
       let wakeTimer;
       let progressTimer;
@@ -658,11 +794,15 @@
       };
 
       const startProgress = () => {
-        setProgress(12);
-        progressTimer = window.setInterval(() => {
-          if (completed || progress >= 92) return;
-          setProgress(progress + Math.max(1, Math.ceil((92 - progress) * .08)));
-        }, 650);
+        window.clearInterval(progressTimer);
+        let ticks=0;
+        setProgress(8);
+        progressTimer=window.setInterval(()=>{
+          if(completed)return;
+          ticks++;
+          setProgress(8+87*(1-Math.exp(-ticks/28)));
+          if(ticks>=25)statusText.textContent='仍在等待服務回應；連線完成就會立即進入。';
+        },1000);
       };
 
       const warmDestination = async () => {
@@ -733,6 +873,18 @@
       };
 
       const renderMix = () => {
+        const gathering=document.getElementById('wakeGathering');
+        const colors=selected.length?selected:['coral'];
+        root.style.setProperty('--selected-paint', colors.length === 1 ? palette[colors[0]].hex : `linear-gradient(115deg, ${colors.map((color,index)=>`${palette[color].hex} ${index*100/(colors.length-1)}%`).join(', ')})`);
+        gathering.dataset.count=String(colors.length);
+        gathering.querySelectorAll('[data-color]').forEach(node=>{if(!colors.includes(node.dataset.color))node.remove();});
+        colors.forEach(color=>{
+          if(gathering.querySelector(`[data-color="${color}"]`))return;
+          const [key,name]={coral:['red','紅'],sun:['yellow','黃'],sky:['blue','藍'],leaf:['green','綠']}[color];
+          const node=document.createElement('span');node.className='report-character wake-character';node.dataset.color=color;
+          const img=document.createElement('img');img.src=`/assets/characters/${key}.webp`;img.alt=`${name}色報告角色`;img.width=160;img.height=225;
+          node.append(img);gathering.append(node);
+        });
         swatches.forEach(button => button.setAttribute('aria-pressed', String(selected.includes(button.dataset.color))));
         resetMix.hidden = selected.length === 0;
 
@@ -740,7 +892,7 @@
           root.style.setProperty('--mix-a', '#ef7180');
           root.style.setProperty('--mix-b', '#f5ca66');
           mixName.textContent = '今天想從哪一種顏色開始？';
-          mixMessage.textContent = '點選下方兩種顏色，或在畫布上灑下幾滴色彩。';
+          mixMessage.textContent = '選幾種顏色，就邀請幾位夥伴；最多四位，再點一次可以取消。';
           return;
         }
 
@@ -750,7 +902,7 @@
         root.style.setProperty('--mix-b', selected[1] ? second.hex : first.soft);
 
         if (selected.length === 1) {
-          mixName.textContent = first.single;
+          mixName.textContent = `${{coral:'紅色',sun:'黃色',sky:'藍色',leaf:'綠色'}[selected[0]]}夥伴來了。`;
           mixMessage.textContent = first.message;
         } else {
           const [name, message] = mixes[pairKey(selected)];
@@ -763,14 +915,9 @@
       swatches.forEach(button => {
         button.addEventListener('click', () => {
           const color = button.dataset.color;
-          const [key, name] = {coral:['red','紅'],sun:['yellow','黃'],sky:['blue','藍'],leaf:['green','綠']}[color];
-          const companion = document.getElementById('wakeCharacter');
-          companion.src = `/assets/characters/${key}.webp`;
-          companion.alt = `${name}色報告角色`;
           if (selected.includes(color)) {
             selected = selected.filter(item => item !== color);
           } else {
-            if (selected.length === 2) selected.shift();
             selected.push(color);
           }
           const stageBox = mixStage.getBoundingClientRect();
@@ -805,13 +952,30 @@
         }
       });
 
-      nextPrompt.addEventListener('click', () => {
-        promptIndex = (promptIndex + 1) % prompts.length;
+      const changePrompt = () => {
+        if(!promptDeck.length){
+          promptDeck=prompts.map((_,i)=>i);
+          for(let i=promptDeck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[promptDeck[i],promptDeck[j]]=[promptDeck[j],promptDeck[i]];}
+          if(prompts[promptDeck[0]]===(lastPrompt||promptText.textContent))[promptDeck[0],promptDeck[1]]=[promptDeck[1],promptDeck[0]];
+        }
+        const promptIndex=promptDeck.shift();
+        lastPrompt=prompts[promptIndex];
+        try { sessionStorage.setItem(promptDeckKey,JSON.stringify(promptDeck)); sessionStorage.setItem('colorlab-prompt-last-v1',lastPrompt); } catch {}
         promptText.classList.remove('is-changing');
         void promptText.offsetWidth;
         promptText.textContent = prompts[promptIndex];
         promptText.classList.add('is-changing');
-      });
+      };
+      const pausePrompts=document.getElementById('pausePrompts');
+      let promptsPaused=false,lastPromptAt=Date.now();
+      pausePrompts.addEventListener('click',()=>{promptsPaused=!promptsPaused;pausePrompts.setAttribute('aria-pressed',String(promptsPaused));pausePrompts.textContent=promptsPaused?'繼續輪播':'暫停輪播';lastPromptAt=Date.now();});
+      nextPrompt.addEventListener('click',()=>{changePrompt();lastPromptAt=Date.now();});
+      changePrompt();
+      const promptTimer=window.setInterval(()=>{
+        if(document.hidden||completed||promptsPaused||promptText.closest('.prompt-card').matches(':hover,:focus-within')){lastPromptAt=Date.now();return;}
+        if(Date.now()-lastPromptAt>=14000){changePrompt();lastPromptAt=Date.now();}
+      },1000);
+      window.addEventListener('pagehide',()=>clearInterval(promptTimer),{once:true});
 
       const markReady = () => {
         if (completed) return;
@@ -830,13 +994,13 @@
           return;
         }
 
-        const wait = Math.max(500, minimumVisibleTime - (Date.now() - startedAt));
+        const wait = 0;
         window.setTimeout(() => {
           readyCurtain.classList.add('show');
           readyCurtain.setAttribute('aria-hidden', 'false');
           window.setTimeout(() => {
             window.location.replace(destination);
-          }, 1150);
+          }, 150);
         }, wait);
       };
 
@@ -855,13 +1019,13 @@
           const body = await response.text();
           if (body.trim() !== 'OK') throw new Error('Health check failed');
           setProgress(78);
-          await warmDestination();
           setProgress(94);
           markReady();
         } catch (_error) {
           if (!completed && Date.now() - attemptStarted < 120000 && navigator.onLine) wakeTimer = window.setTimeout(wakeServer, 2600);
           else if (!completed) {
             window.clearInterval(progressTimer);
+            wakeProgress.classList.remove('is-waiting');
             statusText.textContent = navigator.onLine ? '這次連線需要久一點，你可以重新連線；作答進度不會清除。' : '目前沒有網路，連線恢復後再試一次。';
             progressText.textContent = '等待連線';
             wakeProgress.removeAttribute('aria-valuenow');
@@ -883,7 +1047,7 @@
 
       if (previewMode) {
         statusText.textContent = 'ColorLab 色彩空間預覽中';
-        setProgress(68);
+        startProgress();
       } else {
         startProgress();
         wakeServer();

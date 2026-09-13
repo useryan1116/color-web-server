@@ -1,0 +1,3 @@
+@font-face{font-family:ColorLabHandwriting;src:url('/assets/fonts/ChenYuluoyan-Thin-Monospaced.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+.mood-choice h2,.account-app .guide-gentle-note h2{font-family:ColorLabHandwriting,var(--body-font);font-size:clamp(28px,3vw,36px);font-weight:400;line-height:1.5;letter-spacing:0}
+#home-heading,.home-handwritten{font-family:ColorLabHandwriting,var(--body-font);font-weight:400;letter-spacing:0}

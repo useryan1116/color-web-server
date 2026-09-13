@@ -14,6 +14,7 @@ body:has(.color-detail-dialog[open]) main .articulated *,body:has(.color-detail-
 .swatch[data-pointer-focus]:focus, .color-detail-dialog[data-pointer-focus]:focus, .color-detail-dialog[data-pointer-focus] .dialog-close:focus { outline:none; }
 .color-detail-hero { display:flex; align-items:center; gap:28px; padding:42px 32px 26px; background:var(--detail-tint); color:var(--detail-ink); }
 .color-detail-hero>.report-character { width:130px; height:170px; flex-shrink:0; }
+.color-detail-hero>.articulated { --character-delay:0s!important; }
 .color-detail-hero h2 { font-size:30px; }
 .color-detail-copy { padding:26px 32px 32px; display:grid; gap:24px; }
 .color-detail-copy h3 { font:600 20px/1.5 var(--serif); margin-bottom:7px; }
@@ -21,7 +22,6 @@ body:has(.color-detail-dialog[open]) main .articulated *,body:has(.color-detail-
 @keyframes color-unfold { from{transform:translateY(6px) scale(.98)} to{transform:none} }
 @media(max-width:767px) and (prefers-reduced-motion:no-preference) {
  .color-detail-dialog[open] { animation:color-mobile-open 380ms cubic-bezier(.16,1,.3,1); transform-origin:50% 100%; }
- .color-detail-dialog[open] .articulated *,.color-detail-dialog[open] .articulated::after { animation-play-state:paused; }
 }
 @keyframes color-mobile-open { from{transform:translateY(32px) scale(.96)} to{transform:none} }
 .first-visit { margin:36px 24px 0; border:1px solid var(--line); border-radius:18px; background:var(--white); }
@@ -225,8 +225,8 @@ main[data-flipping] .articulated *,main[data-flipping] .articulated::after { ani
 .mood-vignette i:nth-last-child(2){left:auto;right:28px;top:40px;animation-delay:100ms;background:#91a791}
 .mood-vignette i:last-child{left:auto;right:38px;top:108px;animation-delay:180ms;background:#9aacbf}
 .mood-lift img{animation-name:mood-lift;animation-duration:800ms}.mood-lift .mood-ground{animation:mood-shadow 800ms ease-in-out both}.mood-sway img{animation-name:mood-sway;animation-duration:1500ms}.mood-float img{animation-name:mood-float;animation-duration:1500ms}.mood-ponder img{animation-name:mood-ponder;animation-duration:1200ms}.mood-ponder i{display:none}
-.mood-welcome{height:240px;width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:center;gap:12px;padding:24px 12px;box-sizing:border-box}.mood-welcome img{width:100%;height:160px;object-fit:contain;transform-origin:50% 95%;animation:mood-walk-in 700ms cubic-bezier(.22,.65,.3,1) both;animation-play-state:paused}.mood-scene-caption{font-size:12px;color:var(--muted);padding:0 12px 14px;text-align:center}
-.mood-welcome img:nth-child(2){animation-delay:120ms}.mood-welcome img:nth-child(3){animation-delay:240ms}.mood-welcome img:nth-child(4){animation-delay:360ms}.mood-welcome[data-entered] img{animation-play-state:running}
+.mood-welcome{height:240px;width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:center;gap:12px;padding:24px 12px;box-sizing:border-box}.mood-welcome img{width:100%;height:160px;object-fit:contain;transform-origin:50% 95%;animation:mood-walk-in 2200ms cubic-bezier(.22,.65,.3,1) both;animation-play-state:paused}.mood-scene-caption{font-size:12px;color:var(--muted);padding:0 12px 14px;text-align:center}
+.mood-welcome img:nth-child(2){animation-delay:150ms}.mood-welcome img:nth-child(3){animation-delay:300ms}.mood-welcome img:nth-child(4){animation-delay:450ms}.mood-welcome[data-entered] img{animation-play-state:running}
 @keyframes mood-walk-in{0%{opacity:0;transform:translateX(30px) rotate(3deg)}18%{opacity:1;transform:translate(23px,-2px) rotate(-2deg)}40%{transform:translate(14px,0) rotate(2deg)}62%{transform:translate(7px,-2px) rotate(-1deg)}82%{transform:translate(2px,0)}100%{opacity:1;transform:none}}
 @keyframes mood-lift{0%,100%{transform:translateY(0)}15%{transform:translateY(2px);animation-timing-function:cubic-bezier(.2,.7,.3,1)}45%{transform:translateY(-10px);animation-timing-function:cubic-bezier(.4,0,.7,1)}80%{transform:translateY(0)}}
 @keyframes mood-shadow{0%,100%{transform:scaleX(1);opacity:1}45%{transform:scaleX(.85);opacity:.6}}

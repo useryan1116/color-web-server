@@ -73,8 +73,8 @@
 .account-app .recovery-help p,.account-app .recovery-success p { color:var(--muted); line-height:1.8; font-size:14px; }
 .account-app .recovery-help a { display:inline-flex; align-items:center; min-height:44px; color:var(--rose); text-decoration:underline; text-underline-offset:4px; }
 .account-app .form-width { max-width:760px; margin:auto; }
-.account-app .account-footer { border-top:1px solid var(--line); padding:24px 32px 32px; display:flex; justify-content:center; gap:20px; flex-wrap:wrap; font-size:12px; color:var(--muted); }
-.account-app .account-footer nav { display:flex; gap:18px; }
+.account-app .account-footer { border-top:1px solid var(--line); padding:28px 20px 32px; display:flex; flex-direction:column; align-items:center; gap:14px; font-size:13px; line-height:1.7; text-align:center; color:var(--muted); }
+.account-app .account-footer nav { display:flex; justify-content:center; flex-wrap:wrap; gap:8px 24px; }
 .account-app .account-footer a { color:inherit; }
 .account-app[data-studio=true] { padding-left:232px; }
 .account-app[data-studio=true] .site-header { padding-left:32px; }
@@ -122,6 +122,15 @@
 .account-app .prose { max-width:760px; margin:auto; }
 .account-app .prose section { margin:30px 0; }
 .account-app .prose ul { padding-left:22px; line-height:1.9; }
+.account-app .prose section:has(>a[href="#contact"]){padding:32px 0 8px;border:0;border-top:1px solid var(--line);border-radius:0;background:none;margin-top:40px;text-align:center}
+.account-app .prose section:has(>a[href="#contact"]) h2{margin:0 0 10px;font-size:22px}
+.account-app .prose section:has(>a[href="#contact"]) p{max-width:none;font-size:15px;line-height:1.8;margin:0 auto 22px;color:var(--muted)}
+.account-app .privacy-request-copy>span{display:block;text-wrap:balance}
+.account-app .privacy-request-copy>span+span{margin-top:4px}
+.account-app .prose section>a[href="#contact"]{display:flex;align-items:center;gap:14px;width:fit-content;min-height:46px;margin:0 auto;padding:10px 22px;justify-content:center;border:1px solid #d7dccf;border-radius:24px;background:#edf0e7;color:#424c3c}
+.account-app .prose section>a[href="#contact"]::after{content:'→';transition:transform 180ms ease-out}
+.account-app .prose section>a[href="#contact"]:hover::after{transform:translateX(3px)}
+@media(prefers-reduced-motion:reduce){.account-app .prose section>a[href="#contact"]::after{transition:none}}
 .account-app .first-use-guide { max-width:880px; }
 .account-app .first-use-guide .guide-step { display:grid; grid-template-columns:44px minmax(0,1fr); gap:20px; padding:28px 0; margin:0; border-top:1px solid var(--line); }
 .account-app .guide-number { font:500 22px/1.5 Georgia,serif; color:var(--rose); padding-top:2px; }

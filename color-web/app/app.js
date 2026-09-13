@@ -1,4 +1,5 @@
 import { colors, scoreAnswers, finishSurvey } from './model.mjs';
+import { offerTour } from './first-tour.mjs';
 import { request, readLocal, saveRecord, safeUrl, isCurrentContent } from './client.mjs';
 import { restoreSession, clearSession } from './auth.mjs';
 import { verificationStatus, bindVerificationStatus } from './verification-status.mjs';
@@ -103,7 +104,7 @@ function home() {
   return `<div class="home-page page-width">
     <section class="hero" aria-labelledby="home-heading">
       <div class="hero-copy"><div class="eyebrow"><svg class="tiny-flower quiet-glint" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M12 3C12 9 9 12 3 12C9 12 12 15 12 21C12 15 15 12 21 12C15 12 12 9 12 3Z" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/></svg> A LITTLE CLOSER TO YOU</div>
-        <h1 id="home-heading">你的每一面，<br>都有自己的<span class="rose-word">顏色。</span></h1>
+        <h1 id="home-heading">你的每一面，<br><span class="home-handwritten">都有自己的<span class="rose-word">顏色。</span></span></h1>
         <p class="hero-description">留一點時間給自己。<br>從 ${featured.questions.length} 個日常選擇，遇見更真實的你。</p>
         <div class="test-facts"><span>${icon('test')}${featured.questions.length} 道題目</span><span>${icon('clock')}約 ${featured.minutes} 分鐘</span></div>
         <a class="button primary hero-cta" href="#test/${featured.id}">${count ? `繼續測驗 · 第 ${state.drafts[featured.id].index + 1} 題` : featured.resultType === 'color-mbti' ? '開始我的色彩探索' : '開始探索'}${icon('arrow')}</a>
@@ -286,6 +287,7 @@ function render(direction = 'page') {
   if (!reuse) bindPage();
   if (reusable) publicViews.set(route, {signature, node:main.firstElementChild});
   navigationMotion.commit(paintedRoute,{restored:reuse});
+  if(route==='home')offerTour();
   if(route==='history'&&!historyError)completeHistory();
 }
 

@@ -41,12 +41,12 @@
                     <textarea id="description" name="description" required placeholder="請輸入您的寶貴建議或意見..." rows="5"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="name">姓名（選填）</label>
-                    <input type="text" id="name" name="name" placeholder="您的名字(選填)">
+                    <label for="name">稱呼（必填）</label>
+                    <input type="text" id="name" name="name" required maxlength="80" placeholder="您的稱呼">
                 </div>
                 <div class="form-group">
-                    <label for="email">Email（選填）</label>
-                    <input type="email" id="email" name="email" placeholder="您的Email(選填)">
+                    <label for="email">回覆 Email（必填）</label>
+                    <input type="email" id="email" name="email" required maxlength="254" placeholder="您的 Email">
                 </div>
                 <div class="button-group">
                     <button type="button" class="back-btn" onclick="history.back()">返回</button>

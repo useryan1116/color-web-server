@@ -26,6 +26,7 @@ app.post('/api/explore/guest-result-feedback',(req,res)=>{const value={choice:re
 app.post('/api/explore/records',(req,res)=>{const r={...records[0],id:'review-saved-'+Date.now(),date:new Date().toISOString(),answers:req.body.answers};records.unshift(r);res.json(r);});
 app.delete('/api/explore/records/:id',(req,res)=>{const index=records.findIndex(r=>r.id===req.params.id);if(index>=0)records.splice(index,1);res.json({deleted:true});});
 app.post('/api/user/register',(req,res)=>res.json({verificationRequired:true,email:req.body.email,message:'本機範例：帳號建立成功，未寄出信件。'}));
+app.post('/api/user/feedback',(req,res)=>{const value=require('../server/services/contactMail').parse(req.body);res.status(value?201:400).json({message:value?'本機送出流程測試成功：未儲存、未寄出信件。':'請確認訊息內容與 Email 格式。'});});
 app.use('/api',(_req,res)=>res.status(404).json({message:'本機驗收不開放這項操作，沒有連到正式服務。'}));
 app.use(async(req,res,next)=>{
   const relative=req.path.endsWith('/')?req.path+'index.html':req.path;

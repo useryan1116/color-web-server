@@ -1,0 +1,16 @@
+.first-tour{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;overflow:hidden;color:#45433d}
+.first-tour::backdrop{background:transparent}
+.first-tour .tour-spot{position:absolute;border-radius:14px;box-shadow:0 0 0 200vmax #242b2bb8;border:2px solid #fffdf4;pointer-events:none}
+.first-tour .tour-card{position:absolute;box-sizing:border-box;padding:24px;border:1px solid #dddcd2;border-radius:22px;background:#fffdf7;box-shadow:0 12px 40px #1113;max-height:calc(100dvh - 24px);overflow:auto}
+.first-tour .tour-count{font:13px/1.5 system-ui;margin:0 0 10px;color:#777767}
+.first-tour h2{font:600 22px/1.5 system-ui;margin:0 0 10px}
+.first-tour #tour-copy{font:16px/1.8 system-ui;margin:0 0 22px}
+.first-tour .tour-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.first-tour button{font:14px/1.4 system-ui;min-height:44px;padding:10px 12px;border:0;border-radius:12px;color:#55574c;background:#eeeee5;cursor:pointer;box-shadow:none}
+.first-tour [data-skip]{margin-right:auto;background:transparent;padding-left:0;color:#6c6e62}
+.first-tour [data-next]{background:#555f50;color:white}
+.first-tour button:disabled{opacity:.4;cursor:default}
+.first-tour button:focus-visible{outline:2px solid #73836a;outline-offset:3px}
+.first-tour [data-tour-music]{margin-top:12px}
+.first-tour .ambient-music-toggle{position:static!important;font-size:12px!important;min-height:36px;padding:6px 10px!important}
+@media(max-width:400px){.first-tour .tour-card{padding:20px}.first-tour h2{font-size:20px}}

@@ -205,15 +205,17 @@ router.put('/update-profile', protect, async (req, res) => {
 // 用戶意見反饋提交
 router.post('/feedback', async (req, res) => {
     try {
-        const { description, name, email } = req.body;
-        if (!description || typeof description !== 'string' || !description.trim()) {
-            return res.status(400).json({ message: '請填寫建議內容' });
-        }
-        const feedback = new Feedback({ description: description.trim(), name: name || '', email: email || '' });
+        const contact = require('../services/contactMail');
+        const value = contact.parse(req.body);
+        if (!value) return res.status(400).json({ message: '請填寫稱呼、有效的回覆 Email 與訊息內容，訊息最多 5000 字。' });
+        await emailVerification.consume('contact:' + req.ip, 5, 3600000);
+        await emailVerification.consume('contact:global', 100, 86400000);
+        const feedback = new Feedback(value);
         await feedback.save();
-        res.status(201).json({ message: '已收到您的寶貴意見！' });
+        const mailAccepted = await contact.sendContact(value);
+        res.status(201).json({ mailAccepted, message: mailAccepted ? '訊息已收到，並已交由郵件服務寄送通知。' : '訊息已存入管理後台，但 Email 通知尚未確認送達，請勿重複送出。' });
     } catch (error) {
-        res.status(500).json({ message: '儲存意見失敗' });
+        res.status(error.status === 429 ? 429 : 500).json({ message: error.status === 429 ? '送出次數較多，請稍後再試。' : '訊息尚未儲存，請稍後重試。' });
     }
 });
 

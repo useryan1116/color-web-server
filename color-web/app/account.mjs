@@ -7,6 +7,7 @@ import { pdfHref, bindAppReturn, sessionIdentity, dataRevision } from './navigat
 import { statisticsView } from './statistics-view.mjs';
 import { createNavigationMotion } from './navigation-motion.mjs';
 import { showCompletion } from './completion-feedback.mjs';
+import { aboutView, bindAbout } from './about.mjs';
 
 const main = document.querySelector('main');
 const navigationMotion = createNavigationMotion(main);
@@ -203,9 +204,9 @@ function information(route) {
         </div><p class="guide-caution">已有舊捷徑時，先確認現在的圖示能正常開啟，再自行移除舊捷徑。不要為了重新安裝而清除網站資料，以免遺失訪客紀錄或草稿；不同入口可能需要重新登入。</p>
       </div></section><aside class="guide-gentle-note" aria-labelledby="guide-note-title"><span class="eyebrow">A SMALL REMINDER</span><h2 id="guide-note-title">探索自己，不急著替自己下定義。</h2><p>把測驗結果當成認識自己的起點，留意哪些描述貼近此刻的你，也保留改變的空間。</p><p class="guide-note-scope">ColorLab 提供自我探索與心理健康資訊，<strong>不是心理或醫療診斷</strong>，也不能取代專業評估。</p></aside></article>`;
   }
-  if (route === 'contact') return `<div class="form-width">${back('/app/#me','我的空間')}${intro('想告訴我們什麼？','無論是操作問題、建議或資料需求，都可以在這裡留下訊息。')}<form id="contact-form" class="panel form-stack">${area('description','你的訊息','','required maxlength="5000"')}${field('name','稱呼（選填）')}${field('email','電子郵件（選填，供後續聯絡）','','type="email"')}${status}${submit('送出回饋')}</form></div>`;
-  if (route === 'about') return `<article class="prose">${back('/app/#home','回到首頁')}${intro('每一面，都是你。','關於 ColorLab')}<section class="panel"><h2>用色彩，開啟自我探索</h2><p>ColorLab 面向想認識自己、照顧心理健康的每一個人。我們從日常選擇出發，探索 MBTI 與色彩之間的連結，讓認識自己成為一件容易開始的事。</p></section><section><h2>為誰而設計？</h2><p>給想更認識自己的你，並彙整心理師公會、張老師、生命線、政府及研究期刊的可查證資訊。本測驗並非經臨床驗證的診斷工具，不能取代專業評估。</p></section><section><h2>我們的團隊</h2><p>余旻諺、蔡美姿、呂依潔、陳湘儒、張嘉哲</p></section><div class="actions">${link('/app/#surveys','開始探索','primary','arrow')}${link('#contact','聯絡我們')}</div></article>`;
-  return `<article class="prose">${back('/app/#me','我的空間')}${intro('隱私與資料說明','了解 ColorLab 如何處理你的資料。')}<section><h2>一般帳號</h2><p>電子郵件與密碼用於登入；姓名、生日、性別、電話與職業用於個人資料及研究統計。電話與職業為選填。密碼以雜湊方式保存。</p></section><section><h2>電子郵件驗證</h2><p>新會員須驗證 Email；既有會員可選擇補上驗證。驗證信由 Brevo 代為寄送，會處理收件 Email 與驗證連結，不包含你的測驗答案或結果。連結有效 24 小時，可在驗證頁重新寄送。</p></section><section><h2>訪客與會員紀錄</h2><p>新版訪客測驗答案與結果只保存在目前瀏覽器，清除網站資料後可能遺失，不會自動併入會員帳號。登入會員後完成的測驗會儲存至帳號，並保留完成時的題目快照。</p></section><section><h2>瀏覽器與圖片服務</h2><p>網站在裝置保存登入狀態、公開頁面快取與測驗草稿。登出清除登入狀態，但不主動刪除測驗紀錄。管理員上傳的圖片會傳送至本網站原有的 Cloudinary 圖片空間。</p></section><section><h2>測驗與回饋資料</h2><p>測驗答案、結果與完成時間用於產生報告及研究統計。回饋的姓名與電子郵件為選填，供必要的後續聯絡。測驗僅供自我探索與教學研究，不構成心理或醫療診斷。</p><p>結果頁的描述回饋在點選後送至本站，供管理員查看彙整統計；每份測驗只保留最新選擇。登入帳號的回饋附於自己的測驗紀錄。「其他」文字回覆按送出後才會儲存，供管理員閱讀。訪客傳送問卷識別、選項、自行填寫的文字與隨機識別，不會自動附上完整答案、姓名或信箱；伺服器保存識別的雜湊與更新時間。清除瀏覽器資料不會刪除已送出的訪客回饋，也可能使你無法再修改原回饋。首頁心情選擇不會送出。</p></section><section><h2>查詢、更正與刪除</h2><p>你可以在會員資料頁更正個人資料。如需查詢或刪除資料，請透過意見回饋說明需求並留下聯絡方式。</p>${link('#contact','提出資料需求')}</section></article>`;
+  if (route === 'contact') return `<div class="form-width">${back('/app/#me','我的空間')}${intro('想告訴我們什麼？','無論是操作問題、建議或資料需求，都可以在這裡留下訊息。')}<form id="contact-form" class="panel form-stack">${area('description','你的訊息（必填）','','required maxlength="5000"')}${field('name','稱呼（必填）','','required maxlength="80" autocomplete="name"')}${field('email','回覆 Email（必填）','','type="email" required maxlength="254" autocomplete="email"')}${status}${submit('送出回饋')}</form></div>`;
+  if (route === 'about') return aboutView();
+  return `<article class="prose">${back('/app/#me','我的空間')}${intro('隱私與資料說明','了解 ColorLab 如何處理你的資料。')}<section><h2>一般帳號</h2><p>電子郵件與密碼用於登入；姓名、生日、性別、電話與職業用於個人資料及研究統計。電話與職業為選填。密碼以雜湊方式保存。</p></section><section><h2>電子郵件驗證</h2><p>新會員須驗證 Email。驗證信由 Brevo 代為寄送，會處理收件 Email 與驗證連結，不包含你的測驗答案或結果。連結有效 24 小時，可在驗證頁重新寄送。</p></section><section><h2>訪客與會員紀錄</h2><p>新版訪客測驗答案與結果只保存在目前瀏覽器，清除網站資料後可能遺失，不會自動併入會員帳號。登入會員後完成的測驗會儲存至帳號，並保留完成時的題目快照。</p></section><section><h2>瀏覽器與圖片服務</h2><p>網站在裝置保存登入狀態、公開頁面快取與測驗草稿。登出清除登入狀態，但不主動刪除測驗紀錄。管理員上傳的圖片會傳送至本網站原有的 Cloudinary 圖片空間。</p></section><section><h2>測驗與回饋資料</h2><p>測驗答案、結果與完成時間用於產生報告及研究統計。聯絡與意見回饋表單須填寫稱呼、回覆 Email 與訊息內容，供必要的後續聯絡。測驗僅供自我探索與教學研究，不構成心理或醫療診斷。</p><p>結果頁的描述回饋在點選後送至本站，供管理員查看彙整統計；每份測驗只保留最新選擇。登入帳號的回饋附於自己的測驗紀錄。「其他」文字回覆按送出後才會儲存，供管理員閱讀。訪客傳送問卷識別、選項、自行填寫的文字與隨機識別，不會自動附上完整答案、姓名或信箱；伺服器保存識別的雜湊與更新時間。清除瀏覽器資料不會刪除已送出的訪客回饋，也可能使你無法再修改原回饋。首頁心情選擇不會送出。</p></section><section><h2>查詢、更正與刪除</h2><p class="privacy-request-copy"><span>你可以在會員資料頁更正個人資料。</span><span>如需查詢或刪除資料，請透過意見回饋說明需求並留下聯絡方式。</span></p>${link('#contact','提出資料需求')}</section></article>`;
 }
 
 async function render() {
@@ -277,6 +278,7 @@ async function render() {
     if (seq !== revision) return;
     main.innerHTML=html; document.title='ColorLab｜'+(main.querySelector('h1,h2')?.textContent||'我的空間');
     main.inert = false; main.focus({preventScroll:true}); window.scrollTo(0,0); bind(loaded);
+    if(current==='about')bindAbout(main);
     if(!['login','admin-login','register'].includes(current))bindAppReturn(main.querySelector('.back-link[href^="/app/#"]'));
     mountedKey=routeKey;
     if (retainedRoutes.has(current) && isAdmin) { const heading=main.querySelector('.page-intro');heading?.classList.add('with-refresh');heading?.insertAdjacentHTML('beforeend','<button type="button" class="refresh-view" data-refresh-view><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5.2 7a8 8 0 0 1 13-1L20 9M4 15l1.8 3a8 8 0 0 0 13-1"/></svg><span>更新資料</span></button>'); }
@@ -363,7 +365,7 @@ function bind(loaded) {
   bindOccupation(profile);
   if(profile){profile.querySelector('[data-reset]').onclick=()=>{profile.reset();dirty=false;};profile.onsubmit=event=>{event.preventDefault();saveForm(profile,async()=>{const values=data(profile);if(values.password!==undefined&&values.password!==values.confirmPassword)throw new Error('兩次新密碼不同。');const admin=current==='admin-profile';if(admin&&values.password&&!values.currentPassword)throw new Error('修改密碼時請輸入目前密碼。');const result=await api('/api/'+(admin?'admin':'user')+'/update-profile',json('PUT',values,admin?'admin':'user'));if(admin&&result.passwordChanged){dirty=false;clearSession();location.assign('/app/account.html#admin-login');return;}updateSessionUser(result.user,admin?'admin':'user');await render();notify('資料已儲存。');});};}
   const contact=main.querySelector('#contact-form');
-  if(contact)contact.onsubmit=event=>{event.preventDefault();saveForm(contact,async()=>{await api('/api/user/feedback',json('POST',data(contact)));contact.reset();notify('謝謝你的回饋，我們已收到。');});};
+  if(contact)contact.onsubmit=event=>{event.preventDefault();saveForm(contact,async()=>{const result=await api('/api/user/feedback',json('POST',data(contact)));contact.reset();contact.querySelector('.form-status').textContent=result.message||'訊息已收到。';});};
   main.querySelector('[name=search]')?.addEventListener('input',event=>{page=1;document.querySelector('#users-list').innerHTML=usersView(event.target.value);});
   main.querySelector('[name=category]')?.addEventListener('change',event=>{document.querySelector('#content-list').innerHTML=contentCards(contentItems.filter(i=>!event.target.value||i.type===event.target.value));});
   const surveyForm=main.querySelector('#survey-form');

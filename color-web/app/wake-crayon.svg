@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+<defs><filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".38" numOctaves="3" seed="12"/><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 2 -.6"/><feComposite in2="SourceGraphic" operator="in"/></filter></defs>
+<g stroke="white" stroke-width="17" stroke-linecap="round" filter="url(#grain)">
+<path d="M-20 54L65-15 M-10 94L114-12 M-14 139L160-9 M-12 182L202-8 M-8 225L251-10 M-9 270L299-7 M-8 315L323 32 M35 320L319 77 M87 320L319 120 M139 318L320 164 M189 318L319 207 M237 318L322 248"/>
+</g></svg>

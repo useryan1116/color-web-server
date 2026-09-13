@@ -22,8 +22,19 @@ export function reflectionView(kind, record) {
 export function bindExplorationInteractions(root, {saveReflection}={}) {
   const welcome=root.querySelector('.mood-welcome');
   if(welcome&&!welcome.hasAttribute('data-entered')) {
-    const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){welcome.setAttribute('data-entered','');observer.disconnect();}},{threshold:.2});
-    observer.observe(welcome);
+    let visible=false;
+    const enter=()=>requestAnimationFrame(()=>{
+      if(!welcome.isConnected||welcome.hasAttribute('data-entered'))return cleanup();
+      if(visible&&!document.hidden&&!document.querySelector('dialog[open]')){
+        welcome.setAttribute('data-entered','');cleanup();
+      }
+    });
+    const margin=Math.min(72,Math.max(0,(innerHeight-welcome.offsetHeight)/4));
+    const observer=new IntersectionObserver(entries=>{visible=entries.some(entry=>entry.intersectionRatio>=.99);enter();},{threshold:[0,.99],rootMargin:`-${margin}px 0px -${margin}px 0px`});
+    const resumeEvents=['close','visibilitychange','colorlab-tour-close','colorlab-intro-close'];
+    function cleanup(){observer.disconnect();resumeEvents.forEach(type=>document.removeEventListener(type,enter,true));}
+    resumeEvents.forEach(type=>document.addEventListener(type,enter,true));
+    Promise.all([...welcome.querySelectorAll('img')].map(img=>img.decode().catch(()=>{}))).then(()=>{if(welcome.isConnected)observer.observe(welcome);else cleanup();});
   }
   root.querySelectorAll('[data-reflection]').forEach(panel => {
     const form=panel.querySelector('.reflection-other');

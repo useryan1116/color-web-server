@@ -1,0 +1,35 @@
+import { showIntro } from './intro-entry.mjs';
+const companions = [
+  ['red','紅色','帶著一點好奇，開始吧。'],
+  ['yellow','黃色','新的發現，也許就在下一個選擇。'],
+  ['green','綠色','慢慢來，照自己的步調。'],
+  ['blue','藍色','每一面，都值得好好看看。']
+];
+export function aboutView() {
+  return `<article class="about-colorlab"><div class="about-toolbar"><a class="back-link" href="/app/#home">← 回到首頁</a><span data-about-music></span></div>
+  <section class="about-hero"><h1>關於 ColorLab</h1><div class="about-stage" aria-label="點選角色，看看它的招呼">${companions.map(([key,label,saying],i)=>`<button type="button" class="about-character" data-companion="${key}" style="--order:${i}" aria-label="${label}角色，點一下打招呼"><span class="about-bubble" role="status"></span><img src="/assets/characters/${key}.webp" alt="" width="160" height="245"><span class="about-saying" hidden>${saying}</span></button>`).join('')}</div>
+  <p class="about-lead"><span>每一種顏色，</span><span>都有值得被理解的地方。</span></p></section>
+  <section class="about-intention"><h2>為什麼有 ColorLab？</h2><p>對心理健康與自殺防治議題的關注，是我想做這個網站的起點。我希望能做一個容易接近的自我探索工具，讓人有機會停下來，留意自己的感受、想法，以及面對生活時的習慣。</p><p>我也對人格與色彩之間的關係感到好奇，於是從專題研究開始，嘗試把兩者放在一起探索，慢慢發展成現在的 ColorLab。</p></section>
+  <div class="about-columns"><section><h2>從日常選擇，覺察自己</h2><p>有時候，直接回答「我是怎樣的人」並不容易。ColorLab 希望透過日常情境的選擇與色彩呈現，提供一個思考的起點：哪些描述像自己？哪些不太像？比起得到一個類型，更希望你能從中注意到自己的感受與偏好。</p></section><section><h2>認識自己，也看見自己的需要</h2><p>自我探索不必停在測驗結果。網站也整理心理健康資訊與求助資源，希望在你想進一步了解、或需要支持時，能更容易找到下一步。測驗不能解決所有困難，但希望這裡能成為你開始關心自己的入口。</p></section></div>
+  <aside class="about-boundary" aria-labelledby="about-boundary-title"><h2 id="about-boundary-title">這份測驗能做的，以及不能做的</h2><p>本測驗提供自我探索參考，不能判斷自殺風險，也不能取代心理或醫療專業評估。每次結果都只是當次作答的呈現。</p><a href="/app/#home">到首頁查看心理健康資訊 →</a></aside>
+  <section class="about-email"><h2>留下你的訊息</h2><form id="contact-form" class="form-stack about-contact"><label>稱呼（必填）<input name="name" required autocomplete="name" maxlength="80"></label><label>回覆 Email（必填）<input name="email" required type="email" autocomplete="email" maxlength="254"></label><label>訊息內容（必填）<textarea name="description" rows="5" required maxlength="5000" placeholder="你想詢問的問題，或對網站的建議"></textarea></label><p class="hint">訊息會儲存於管理後台，並透過郵件服务通知網站負責人。請勿填寫密碼或敏感個資；此表單不提供即時心理支持。</p><p class="form-status" role="status" aria-live="polite"></p><button type="submit" class="button primary">送出訊息</button></form></section>
+  </article>`;
+}
+export function bindAbout(root) {
+  document.dispatchEvent(new Event('colorlab-about-ready'));
+  showIntro();
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  let timeout;
+  root.querySelectorAll('[data-companion]').forEach((button,i)=>{
+    button.onclick=()=>{
+      clearTimeout(timeout);
+      root.querySelectorAll('.is-speaking').forEach(other=>{other.classList.remove('is-speaking');other.querySelector('.about-bubble').textContent='';});
+      const bubble=button.querySelector('.about-bubble');
+      bubble.textContent=button.querySelector('.about-saying').textContent;
+      button.classList.add('is-speaking');
+      button.getAnimations().forEach(a=>a.cancel());
+      if(!reduced.matches)button.animate([{transform:'rotate(0deg)'},{transform:`rotate(${i%2?-4:4}deg) translateY(-5px)`},{transform:'rotate(0deg)'}],{duration:850,easing:'ease-in-out'});
+      timeout=setTimeout(()=>{button.classList.remove('is-speaking');bubble.textContent='';},2400);
+    };
+  });
+}
