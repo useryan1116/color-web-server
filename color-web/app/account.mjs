@@ -6,6 +6,7 @@ import {reviewPage,bindReview,adminContentMedia} from './content-review.mjs';
 import { pdfHref, bindAppReturn, sessionIdentity, dataRevision } from './navigation-state.mjs';
 import { statisticsView } from './statistics-view.mjs';
 import { createNavigationMotion } from './navigation-motion.mjs';
+import { createTabScrubber } from './tab-scrubber.mjs';
 import { showCompletion } from './completion-feedback.mjs';
 import { aboutView, bindAbout } from './about.mjs';
 
@@ -13,6 +14,7 @@ const main = document.querySelector('main');
 const navigationMotion = createNavigationMotion(main);
 const modal = document.querySelector('dialog');
 const navigation = document.querySelector('#navigation');
+const tabScrubber = createTabScrubber(navigation);
 const studio = document.querySelector('#studio-nav');
 const menu = document.querySelector('#menu-toggle');
 const adminRoutes = new Set(['admin', 'users', 'user', 'surveys', 'survey', 'content', 'content-edit', 'records', 'statistics', 'feedbacks', 'security', 'admin-profile']);
@@ -94,6 +96,7 @@ function frame(isAdmin) {
   if(isAdmin)menu.insertAdjacentHTML('afterend','<button type="button" class="button secondary header-signout" data-header-signout data-signout aria-label="登出管理帳號">登出</button>');
   const links = [['home', '首頁', 'home'], ['surveys', '測驗', 'test'], ['history', '紀錄', 'history'], ['me', '我的', 'me']];
   navigation.innerHTML = links.map(([route, text, symbol]) => `<a href="/app/#${route}"${route === 'me' ? ' aria-current="page"' : ''}>${icon(symbol)}<span>${text}</span></a>`).join('');
+  tabScrubber.sync();
   studio.hidden = !isAdmin;
   if (isAdmin) studio.innerHTML = `<p class="studio-caption">COLORLAB 管理工作室</p>${sections.map(([route, text, symbol]) => `<a href="#${route}"${(current === route || ({ user:'users', survey:'surveys', 'content-edit':'content' })[current] === route) ? ' aria-current="page"' : ''}>${icon(symbol)}${text}</a>`).join('')}<div class="studio-end"><a href="/app/#home">${icon('back')}回到使用者首頁</a><button type="button" data-signout>登出管理帳號</button></div>`;
   menu.setAttribute('aria-expanded', 'false'); studio.classList.remove('is-open');

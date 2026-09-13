@@ -6,6 +6,8 @@ assets.push('assets/intro/about-mobile-4k120-hevc-v7.mp4','assets/intro/about-de
 assets.push(...['mobile','desktop'].flatMap(layout=>['2k','1080p'].flatMap(tier=>['hevc','avc'].map(codec=>`assets/intro/about-${layout}-${tier}120-${codec}-v8.mp4`))));
 assets.push('app/about.mjs','app/about.css','app/motion.css',...['desktop','mobile'].map(n=>'assets/intro/about-'+n+'-final-v6.webp'));
 assets.push('app/navigation-motion.mjs');
+assets.push('app/tab-scrubber.mjs');
+assets.push('app/system-theme.css','app/theme-preference.js');
 (async()=>{
  const nonce=Date.now();
  for(const retired of ['app/intro-check.html','app/intro-check.mjs']){

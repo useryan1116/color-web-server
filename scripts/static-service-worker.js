@@ -1,11 +1,13 @@
 // Independent frontend: cache public shell only, never tokens, records, APIs or Render wake HTML.
-const CACHE = 'colorlab-static-shell-v34';
+const CACHE = 'colorlab-static-shell-v35';
 const FONT_CACHE = 'colorlab-fonts-v2';
 const FONT = '/assets/fonts/ChenYuluoyan-v2.woff2';
 const OPTIONAL=['/assets/fonts/ChenYuluoyan-v2.woff2','/assets/intro/about-mobile-4k120-v6.mp4','/assets/intro/about-desktop-4k120-v6.mp4','/assets/music/home-first-light-hq.flac','/assets/music/about-soft-piano-hq.flac'];
 const SHELL = ['/app/', '/app/app.js', '/app/model.mjs', '/app/client.mjs', '/app/auth.mjs', '/app/ui.mjs', '/app/account.html', '/app/account.mjs', '/app/account.css', '/app/style.css', '/app/motion.css', '/js/static-connection.js', '/colorlab-mark.svg', '/wake.html'];
 SHELL.push('/app/site-shell.mjs','/app/font-ready.mjs','/app/handwriting.css','/app/ambient-music.mjs','/app/music-position.mjs','/app/music-preference.mjs','/app/warm-assets.mjs');
 SHELL.push('/app/about.mjs','/app/intro-entry.mjs');
+SHELL.push('/app/tab-scrubber.mjs','/app/first-tour.mjs','/app/first-tour.css');
+SHELL.push('/app/system-theme.css','/app/theme-preference.js');
 SHELL.push('/app/verification-status.mjs', '/app/verification-status.css');
 SHELL.push('/app/character-art.mjs');
 SHELL.push('/assets/images/survey-color-cover-20260906.webp');

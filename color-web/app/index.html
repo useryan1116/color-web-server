@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#fcf8f4">
+  <meta name="theme-color" content="#fcf8f4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#211f24" media="(prefers-color-scheme: dark)">
   <title>ColorLab｜發現你的本色</title>
   <link rel="icon" href="/colorlab-mark.svg" type="image/svg+xml">
   <link rel="manifest" href="/manifest.webmanifest">
@@ -18,6 +19,8 @@
   <link rel="stylesheet" href="/app/experience.css">
   <link rel="stylesheet" href="/app/handwriting.css">
   <link rel="stylesheet" href="/app/first-tour.css">
+  <link rel="stylesheet" href="/app/system-theme.css" data-system-theme media="(prefers-color-scheme: dark)">
+  <script src="/app/theme-preference.js"></script>
   <script type="module" src="/app/site-shell.mjs"></script>
 </head>
 <body>

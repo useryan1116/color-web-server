@@ -1,5 +1,6 @@
 import { colors, scoreAnswers, finishSurvey } from './model.mjs';
 import { offerTour } from './first-tour.mjs';
+import { createTabScrubber } from './tab-scrubber.mjs';
 import { request, readLocal, saveRecord, safeUrl, isCurrentContent } from './client.mjs';
 import { restoreSession, clearSession } from './auth.mjs';
 import { verificationStatus, bindVerificationStatus } from './verification-status.mjs';
@@ -34,6 +35,7 @@ window.addEventListener('pagehide',()=>quizFeedback.dispose());
 window.addEventListener('hashchange',()=>quizFeedback.stop());
 const dialog = document.querySelector('dialog');
 const nav = document.querySelector('#navigation');
+const tabScrubber = createTabScrubber(nav);
 let previewStorage;
 try { previewStorage = window.localStorage; } catch { /* Private mode may block storage. */ }
 let state;
@@ -271,6 +273,7 @@ function render(direction = 'page') {
   const active = ['news','resources'].includes(route) ? 'home' : route === 'result' ? 'history' : route === 'test' ? 'surveys' : route;
   activeSurvey = catalog.find(s => s.id === (id || FEATURED_SURVEY)) || catalog[0];
   nav.innerHTML = [['home', '首頁'], ['surveys', '測驗'], ['history', '紀錄'], ['me', '我的']].map(([key, label]) => `<a href="#${key}" ${key === active ? 'aria-current="page"' : ''}>${icon(key === 'surveys' ? 'test' : key)}<span>${label}</span></a>`).join('');
+  tabScrubber.sync();
   const record = state.records.find(r => r.id === id);
   const reusable = ['home','surveys','news','resources'].includes(route);
   const signature = reusable ? JSON.stringify([hue, state.drafts, catalog, articles, resources]) : '';
@@ -335,6 +338,10 @@ function bindPage() {
     };
   }));
   const profile = document.querySelector('.profile-page');
+  if (profile) {
+    profile.insertAdjacentHTML('beforeend','<fieldset class="appearance-settings"><legend>畫面外觀</legend><p>預設跟隨裝置，也可以選擇喜歡的明暗。這台裝置會記住你的選擇。</p><div class="appearance-options"><label><input type="radio" name="colorlab-appearance" value="system" checked><span>跟隨系統</span></label><label><input type="radio" name="colorlab-appearance" value="light"><span>淺色</span></label><label><input type="radio" name="colorlab-appearance" value="dark"><span>深色</span></label></div></fieldset>');
+    document.dispatchEvent(new Event('colorlab-theme-sync'));
+  }
   if (profile && member?.role === 'admin') profile.querySelector('.profile-card').insertAdjacentHTML('afterend', '<p class="muted">目前使用管理員身分；測驗會儲存至管理員自己的紀錄，與會員紀錄分開。會員 Email 驗證不適用於管理員帳號。</p>');
   if (profile && member && member.role !== 'admin') profile.querySelector('.profile-card').insertAdjacentHTML('afterend', `<section class="verification-panel"><div data-verification-status>${verificationStatus(member)}</div><a class="text-button" href="/app/account.html#profile">管理 Email 驗證${icon('arrow')}</a></section>`);
   bindVerificationStatus(document.querySelector('[data-verification-status]'), () => request('/api/user/profile'), user => { member = { ...member, emailVerifiedAt: user.emailVerifiedAt || null, emailVerificationRequired: user.emailVerificationRequired === true }; });

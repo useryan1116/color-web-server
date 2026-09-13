@@ -1,4 +1,13 @@
 /* ColorLab's paper cards unfold into a quiet reading space. */
+.appearance-settings{margin:28px 0 0;padding:20px;border:1px solid var(--line);border-radius:18px;min-width:0;background:var(--white)}
+.appearance-settings legend{padding:0 8px;font-size:17px;font-weight:600}
+.appearance-settings p{font-size:13px;line-height:1.8;color:var(--muted);margin-bottom:16px}
+.appearance-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.appearance-options label{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 4px;min-height:48px;border:1px solid var(--line);border-radius:12px;font-size:13px;cursor:pointer;white-space:nowrap}
+.appearance-options input{width:14px;height:14px;margin:0;accent-color:var(--rose)}
+.appearance-options label:has(input:checked){background:var(--rose-soft);color:var(--rose);border-color:var(--rose)}
+.appearance-options label:focus-within{outline:2px solid var(--rose);outline-offset:3px}
+@media(max-width:360px){.appearance-settings{padding:16px 12px}.appearance-options label{flex-direction:column;gap:7px}}
 .hero-copy .quiet-glint { display:inline-block; width:20px; height:20px; flex-shrink:0; vertical-align:middle; overflow:visible; }
 .quiet-glint path { transform-box:view-box; transform-origin:center; opacity:.62; animation:quiet-glint 8s cubic-bezier(.4,0,.2,1) infinite; }
 @keyframes quiet-glint { 0%,60%,100%{opacity:.62;transform:scale(1)} 77%{opacity:1;transform:scale(1.07)} 94%{opacity:.62;transform:scale(1)} }

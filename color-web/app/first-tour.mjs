@@ -4,7 +4,8 @@ const steps=[
   ['home','從這裡，慢慢認識自己','首頁有色彩互動與心理健康資訊，可以照自己的步調探索。'],
   ['surveys','選一份測驗，開始探索','到「測驗」看看有哪些主題。結果是自我覺察的參考，不是診斷。'],
   ['history','回頭看看每一次的自己','完成的測驗可以在「紀錄」查看，再次閱讀那一次的結果。'],
-  ['me','你的設定，都在這裡','到「我的」管理帳號、查看使用說明，也能找到關於 ColorLab。']
+  ['me','你的設定，都在這裡','到「我的」管理帳號、查看使用說明，也能找到關於 ColorLab。'],
+  ['install','第一次來，從這裡開始','「初次使用 ColorLab？」整理了使用方式、紀錄保存與加入主畫面的步驟，之後想查也能隨時回來。']
 ];
 export function offerTour(){
   if(running||attempted||!['','#home'].includes(location.hash))return;
@@ -35,7 +36,7 @@ function openTour(){
   const routeExit=()=>close(false);
   function position(){
     if(closed)return;
-    const target=document.querySelector(`#navigation a[href="#${steps[index][0]}"]`);
+    const target=document.querySelector(steps[index][0]==='install'?'.first-use-link':`#navigation a[href="#${steps[index][0]}"]`);
     if(!target){close(false);return;}
     const r=target.getBoundingClientRect(),w=innerWidth,h=innerHeight;
     const signature=[r.x,r.y,r.width,r.height,w,h,index].join();
@@ -54,6 +55,7 @@ function openTour(){
     dialog.querySelector('#tour-title').textContent=steps[index][1];dialog.querySelector('#tour-copy').textContent=steps[index][2];
     back.disabled=index===0;next.textContent=index===steps.length-1?'開始探索':'下一步';lastRect='';
     next.focus({preventScroll:true});
+    if(steps[index][0]==='install')document.querySelector('.first-use-link')?.scrollIntoView({block:'center',behavior:'instant'});
   }
   next.onclick=()=>{gesture();if(index===steps.length-1)close();else{index++;show();}};
   back.onclick=()=>{gesture();if(index>0){index--;show();}};

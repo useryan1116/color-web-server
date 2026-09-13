@@ -29,7 +29,7 @@ if (embedded) {
 } else {
   document.documentElement.classList.add('colorlab-shell');
   const style = document.createElement('style');
-  style.textContent = '.colorlab-shell,.colorlab-shell body{height:100%;overflow:hidden!important}.colorlab-shell body> :not([data-colorlab-page]):not(.ambient-music-toggle):not(audio):not(script):not(style){display:none!important}iframe[data-colorlab-page]{position:fixed;inset:0;width:100%;height:100%;height:100dvh;border:0;background:#fcf8f4}';
+  style.textContent = '.colorlab-shell,.colorlab-shell body{height:100%;overflow:hidden!important}.colorlab-shell body> :not([data-colorlab-page]):not(.ambient-music-toggle):not(audio):not(script):not(style){display:none!important}iframe[data-colorlab-page]{position:fixed;inset:0;width:100%;height:100%;height:100dvh;border:0;background:var(--paper,#fcf8f4)}';
   document.head.append(style);
   const frame = document.createElement('iframe');
   frame.dataset.colorlabPage = '';

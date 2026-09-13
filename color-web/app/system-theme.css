@@ -1,0 +1,36 @@
+/* Enabled by the small preference controller; media defaults to the system. */
+  :root,.account-app{color-scheme:dark;--paper:#211f24;--white:#2c292f;--panel:#2c292f;--subtle:#363139;--ink:#f0e8e6;--muted:#c0b3b8;--line:#51454d;--rose:#eea0ba;--rose-soft:#4c303e}
+  body{background:var(--paper);color:var(--ink)}
+  .secondary,.text-button,.option-letter{color:var(--ink);border-color:var(--line)}
+  .primary,.option:has(input:checked) .option-letter{background:var(--rose);color:#301f29}
+  .primary:hover:not(:disabled){background:#f6b4ca}
+  .secondary:hover:not(:disabled),.option:has(input:checked){background:var(--rose-soft)}
+  .button:disabled{background:var(--subtle);border-color:var(--line);color:var(--muted)}
+  .report-panel,.preview-explainer,.about-boundary,.first-visit-symbol,.account-app .guide-gentle-note{background:var(--subtle);color:var(--ink)}
+  .saved-state{color:#b4d1b4}
+  .result-hero{color:var(--result-ink,#393435)}
+  progress,progress::-webkit-progress-bar,.bar-track{background:var(--line)}
+  .test-sidebar li,.about-intention p,.about-columns p,.about-boundary p,.about-contact label,.about-email .about-contact .hint{color:var(--muted)}
+  .about-email,.account-app .question-editor,.account-app tr{background:var(--panel)}
+  .account-app #studio-nav{background:var(--paper)}
+  .account-app .field :is(input,select,textarea),.about-contact :is(input,textarea){background:var(--paper);border-color:var(--line);color:var(--ink)}
+  input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
+  .account-app .button.danger{color:#ffb0bb;border-color:#875362;background:#482b35}
+  .account-app .security-unknown{background:#393326;border-color:#96824c}
+  .account-app .prose section>a[href="#contact"]{background:#344036;border-color:#596a55;color:#d4e5c8}
+  .mood-choice .reflection-options button:not([aria-pressed=true]){background:var(--white);color:var(--ink)}
+  .first-tour{color:var(--ink)}
+  .first-tour .tour-card{background:var(--panel);border-color:var(--line)}
+  .first-tour .tour-count,.first-tour [data-skip]{color:var(--muted)}
+  .first-tour button{background:var(--subtle);color:var(--ink)}
+  .first-tour [data-next]{background:var(--rose);color:#301f29}
+  .first-tour .tour-spot{border-color:var(--rose)}
+  .brand-entry,.completion-feedback{background:var(--paper);color:var(--ink)}
+  .brand-entry>span,.completion-content small{color:var(--ink)}
+  body .ambient-music-toggle{background:#2c292ff5;color:var(--ink);border-color:var(--line)}
+  body .ambient-music-action{background:#3a493b;color:#dcebd7}
+  body .ambient-music-action[aria-checked="false"]{background:var(--subtle);color:var(--muted)}
+  #navigation.tab-scrubber::after{border-color:#f8ddea66;background:linear-gradient(145deg,#8f657777,#593a50cc);box-shadow:0 4px 18px #0005,inset 0 1px 2px #ffffff30}
+  /* The movie's final frame and its matching page poster remain one original scene. */
+  .about-final-hero{color:#393435}
+  .about-final-hero .about-scroll-cue{color:#785a65}

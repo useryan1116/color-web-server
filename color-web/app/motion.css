@@ -78,6 +78,18 @@ dialog[open]::backdrop { animation: cl-shade 180ms ease-out; }
   html { scroll-behavior: auto; }
   :is(.button, .back-link, .text-button, .option):active:not(:disabled) { transform: none; }
 }
+/* Mobile press-and-scrub: only the bubble moves; labels stay anchored. */
+@media(max-width:767px){
+  #navigation.tab-scrubber{touch-action:none;isolation:isolate}
+  #navigation.tab-scrubber a{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+  #navigation.tab-scrubber::after{content:"";position:absolute;left:0;top:var(--tab-bubble-y,5px);width:var(--tab-bubble-width,70px);height:var(--tab-bubble-height,62px);transform:translateX(var(--tab-bubble-x,0px)) scale(.96);border-radius:23px;border:1px solid #ffffffdc;background:linear-gradient(145deg,#fff9,#f3dce8b8);box-shadow:0 4px 18px #8e476424,inset 0 1px 2px #fff;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);pointer-events:none;z-index:-1;opacity:0;transition:opacity 100ms ease-out}
+  #navigation.tab-scrubbing::after{opacity:1;transform:translateX(var(--tab-bubble-x,0px)) scale(1)}
+  #navigation.tab-scrubbing.tab-outside::after{opacity:0}
+  #navigation.tab-scrubbing a[aria-current]::before{opacity:0}
+  #navigation.tab-scrubbing a{color:var(--muted)}
+  #navigation.tab-scrubbing a.tab-preview{color:var(--rose)}
+  #navigation.tab-scrubbing .tab-preview .icon{filter:drop-shadow(0 1px 3px #9d456422)}
+}
 /* Success is a short, opaque interstitial before the destination is revealed. */
 .brand-entry{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;gap:14px;background:#fbf8f4eb;pointer-events:none;animation:brand-entry-out .2s .4s ease-in forwards}.brand-entry>span{font:600 32px Georgia,serif;color:#393435}.brand-entry img{animation:brand-entry-in .35s cubic-bezier(.2,.8,.2,1) both}.brand-entry .brand-dot{color:#9d4564}
 @keyframes brand-entry-in{from{opacity:0;transform:translateY(6px) scale(.92)}to{opacity:1;transform:none}}@keyframes brand-entry-out{to{opacity:0;visibility:hidden}}
