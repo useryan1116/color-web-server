@@ -31,15 +31,29 @@ test('ordinary first paint and retained non-information pages remain unchanged',
   assert.equal(p.motion.commit('records').timing.duration,320);
 });
 
-test('leaving a saved result or returning to it never shifts or scales the page',()=>{
+test('leaving a saved result or returning to it never fades, shifts or scales the page',()=>{
   for(const mobile of [false,true])for(const destination of ['#history','#home','#me']){
     const p=setup(mobile);p.motion.commit('#result/review-new');
     for(const route of [destination,'#result/review-new']){
       const animation=p.motion.commit(route);
-      assert.ok(animation,'retain a gentle transition');
-      assert.deepEqual(Array.from(animation.frames,frame=>frame.transform),['none','none'],`${route}: scrolled content must remain in place throughout the transition`);
+      assert.equal(animation,null,`${route}: keep the destination fully opaque and stationary`);
     }
   }
+});
+
+test('immediate result navigation cancels the previous tab animation without another flash',()=>{
+  const p=setup(true);p.motion.commit('#home');
+  const previous=p.motion.commit('#history');
+  assert.equal(p.motion.commit('#result/review-new'),null);
+  assert.equal(previous.cancelled,true);
+  assert.equal(p.motion.commit('#history'),null);
+  assert.equal(p.animations.length,1,'no result-entry or exit animation can lower opacity');
+  assert.ok(p.motion.commit('#me'),'subsequent ordinary tabs retain their slide');
+});
+
+test('history cards render at real height before restoring the saved scroll position',()=>{
+  const css=fs.readFileSync('color-web/app/experience.css','utf8');
+  assert.doesNotMatch(css,/\.history-entry\s*\{[^}]*content-visibility:auto/,'fresh history cards must not start as blank estimated-height boxes');
 });
 
 test('ordinary mobile tabs still slide and information pages retain their entrance',()=>{

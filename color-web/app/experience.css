@@ -224,7 +224,6 @@ main[data-flipping] .articulated *,main[data-flipping] .articulated::after { ani
 .history-dates{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:16px}.history-dates[hidden]{display:none}
 .history-load-status{font-size:13px;color:var(--muted);margin-top:12px}.history-month{margin-top:28px}.history-month>h3{font-size:16px;margin-bottom:12px;color:var(--muted)}
 .history-pagination{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:24px;font-size:13px}.history-pagination .button{padding:10px 14px;min-height:44px}
-.history-entry{content-visibility:auto;contain-intrinsic-size:auto 200px}
 .mood-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:stretch;gap:32px;padding:28px 32px;max-width:none;margin:32px 40px}
 .mood-choice{max-width:380px}.mood-choice h2{font-family:var(--serif);font-size:28px;line-height:1.55;margin:12px 0 24px}
 .mood-choice .reflection-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mood-choice .reflection-options button{text-align:center;padding:11px 10px;border-radius:10px;font-size:14px}
