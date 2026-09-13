@@ -10,7 +10,7 @@ function setup(){
   const registration=source.slice(source.indexOf('\n}\n',source.indexOf('\nfunction bindPage()'))+3,source.indexOf('\ntry {\n  await window.ColorLabConnection'));
   const events=new Map(),paints=[],scrolls=[];
   const main={dataset:{},focus(){},querySelector(){return null;},set innerHTML(value){paints.push(value);}};
-  const context={main,nav:{},dialog:{open:false},document:{body:{dataset:{page:'result'}}},
+  const context={main,nav:{},dialog:{open:false},document:{body:{dataset:{page:'result'}},addEventListener(){}},
     location:{hash:'#result/example'},state:{records:[{id:'example'}]},catalog:[],activeSurvey:null,
     FEATURED_SURVEY:null,paintedRoute:'#result/example',routeScroll:new Map([['#history',420]]),
     publicViews:new Map(),tabScrubber:{sync(){}},navigationMotion:{commit(){}},

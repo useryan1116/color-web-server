@@ -437,6 +437,28 @@ function bindPage() {
 function renderRoute() {
   if (paintedRoute !== (location.hash || '#home')) render();
 }
+// iOS restores a joint iframe history snapshot during its left-edge back gesture.
+// Claim that gesture on result pages so the stale result snapshot never re-enters.
+let edgeBackTouch;
+document.addEventListener('touchstart', event => {
+  const point=event.touches[0];
+  edgeBackTouch=location.hash.startsWith('#result/')&&event.touches.length===1&&point.clientX<=20?{x:point.clientX,y:point.clientY}:null;
+  if(edgeBackTouch)event.preventDefault();
+},{passive:false});
+document.addEventListener('touchmove', event => {
+  if(!edgeBackTouch)return;
+  const point=event.touches[0],dx=point.clientX-edgeBackTouch.x,dy=point.clientY-edgeBackTouch.y;
+  if(Math.abs(dy)>32||dx<0){edgeBackTouch=null;return;}
+  if(dx>=24)event.preventDefault();
+},{passive:false});
+document.addEventListener('touchend', event => {
+  const point=event.changedTouches[0],gesture=edgeBackTouch;
+  edgeBackTouch=null;
+  if(!gesture||point.clientX-gesture.x<64||Math.abs(point.clientY-gesture.y)>32)return;
+  event.preventDefault();
+  history.replaceState(history.state,'',`${location.pathname}${location.search}#history`);
+  window.dispatchEvent(new Event('hashchange'));
+},{passive:false});
 // Commit during native back/forward before its visual snapshot is dismissed.
 // The subsequent hashchange must not paint the same destination a second time.
 window.addEventListener('popstate', () => {
