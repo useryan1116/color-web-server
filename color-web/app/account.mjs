@@ -251,7 +251,7 @@ async function render() {
   main.setAttribute('aria-busy', 'true'); main.inert = true;
   let loading = document.querySelector('#route-status');
   if (!loading) { loading = document.createElement('div'); loading.id = 'route-status'; loading.setAttribute('role','status'); main.before(loading); }
-  loading.innerHTML = '<div class="loading-scene"><span class="loading-colors" aria-hidden="true"><i></i><i></i><i></i><i></i></span><p>正在準備下一頁</p><small>你的畫面會在準備好後接上。</small></div>'; loading.hidden = false;
+  loading.setAttribute('aria-label','載入中'); loading.innerHTML = '<div class="loading-scene"><span class="loading-colors" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>'; loading.hidden = false;
   let html, loaded;
   try {
     if (current === 'login' || current === 'admin-login') html = authPage(current === 'admin-login');

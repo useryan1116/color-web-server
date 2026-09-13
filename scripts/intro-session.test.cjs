@@ -9,12 +9,12 @@ function hub(){const events=new Map();return {
   dispatchEvent(e){for(const fn of [...(events.get(e.type)||[])])fn(e);}
 };}
 function visit(){const attributes=new Map();return {document:{documentElement:{hasAttribute:k=>attributes.has(k),setAttribute:(k,v)=>attributes.set(k,v),removeAttribute:k=>attributes.delete(k)}}};}
-function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalone=false,failFirstCodec=false}={}){
-  const dialogs=[],videos=[];let resolvePlay,diagnostics;
-  const element=()=>({...hub(),style:{},dataset:{},setAttribute(){},append(){},prepend(){},replaceChildren(){},remove(){}});
+function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalone=false,failFirstCodec=false,withAnimation=false}={}){
+  const dialogs=[],videos=[],animations=[];let resolvePlay,diagnostics;
+  const element=()=>({...hub(),style:{},dataset:{},setAttribute(){},append(){},prepend(){},replaceChildren(){},remove(){},...(withAnimation?{animate(frames,options){let resolve,reject;const finished=new Promise((r,j)=>{resolve=r;reject=j;});animations.push({frames,options,resolve,reject});return {finished};}}:{})});
   const article=element();
   const document={...hub(),documentElement:top.document.documentElement,body:{append(){}},activeElement:null,
-    querySelector:s=>s==='[data-intro-check]'?diagnostics||null:s==='.about-colorlab'?article:dialogs.find(d=>d.open)||null,
+    querySelector:s=>s==='[data-intro-check]'?diagnostics||null:s==='.about-colorlab'?article:s==='.about-final-poster'?{getBoundingClientRect:()=>({left:20,top:120,width:350,height:525})}:dialogs.find(d=>d.open)||null,
     createElement(tag){const node=element();
       if(tag==='dialog'){const skip=element(),stage=element();Object.assign(node,{skip,querySelector:s=>s==='button'?skip:stage,showModal(){this.open=true;},close(){this.open=false;}});dialogs.push(node);}
       if(tag==='details'){const output=element();Object.assign(node,{output,querySelector:()=>output});diagnostics=node;}
@@ -25,7 +25,8 @@ function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalon
   const context={URL,Event,CustomEvent,HTMLElement:class {},window,document,navigator:{standalone},location:{hash,href:'https://example.test/app/account.html'+hash,pathname:'/app/account.html',origin:'https://example.test'},matchMedia:q=>({matches:q.includes('reduced-motion')?reduced:standalone}),innerHeight:844,innerWidth:390,setTimeout:()=>1,clearTimeout(){}};
   vm.createContext(context);vm.runInContext(source,context);
   const settle=()=>new Promise(r=>setImmediate(r));
-  return {document,window,dialogs,videos,async run(){vm.runInContext('showIntro()',context);await settle();return videos.length;},
+  return {document,window,dialogs,videos,animations,async run(){vm.runInContext('showIntro()',context);await settle();return videos.length;},
+    async finishTransitions(reject=false){for(const a of animations)reject?a.reject():a.resolve();await settle();},
     get diagnosticText(){return diagnostics?.output.textContent||'';},
     skip(){dialogs.at(-1)?.skip.onclick();},
     route(hash){context.location.hash=hash;window.dispatchEvent(new Event('hashchange'));},
@@ -100,4 +101,37 @@ test('unsupported codecs stop after two attempts and leave a future visit retrya
   const top=visit(),page=entry(top,{fail:'NotSupportedError'});await page.run();
   assert.equal(page.videos.length,2);assert.equal(page.dialogs[0].open,false);
   assert.equal(await entry(top).run(),1);
+});
+test('completed video remains visible through a gentle handoff before closing',async()=>{
+  const page=entry(visit(),{withAnimation:true});let closes=0;
+  page.document.addEventListener('colorlab-intro-close',()=>closes++);
+  await page.run();Object.assign(page.videos[0],{videoWidth:2560,videoHeight:3840});page.videos[0].dispatchEvent(new Event('ended'));
+  assert.equal(page.dialogs[0].open,true);assert.equal(closes,0);
+  assert.ok(page.animations.some(a=>a.options.duration>=400&&a.options.duration<=600));
+  assert.ok(page.animations.some(a=>a.frames.some(f=>f.transform)));
+  await page.finishTransitions();assert.equal(page.dialogs[0].open,false);assert.equal(closes,1);
+});
+test('skip and format failure do not wait for transitions; cancelled exit still closes',async()=>{
+  const skipped=entry(visit(),{withAnimation:true});await skipped.run();skipped.skip();
+  assert.equal(skipped.animations.length,0);assert.equal(skipped.dialogs[0].open,false);
+  const failed=entry(visit(),{withAnimation:true,fail:'NotSupportedError'});await failed.run();
+  assert.equal(failed.animations.length,0);assert.equal(failed.dialogs[0].open,false);
+  const completed=entry(visit(),{withAnimation:true});await completed.run();completed.videos[0].dispatchEvent(new Event('ended'));
+  await completed.finishTransitions(true);assert.equal(completed.dialogs[0].open,false);
+});
+test('navigation during the final-frame handoff closes immediately and only once',async()=>{
+  const page=entry(visit(),{withAnimation:true});let closes=0;
+  page.document.addEventListener('colorlab-intro-close',()=>closes++);
+  await page.run();page.videos[0].dispatchEvent(new Event('ended'));page.route('#privacy');
+  assert.equal(page.dialogs[0].open,false);assert.equal(closes,1);
+  await page.finishTransitions();assert.equal(closes,1);
+});
+test('About scene uses final-frame posters with four accessible greeting controls',()=>{
+  const about=fs.readFileSync('color-web/app/about.mjs','utf8').replace(/^import .*;\r?\n/,'').replaceAll('export function','function');
+  const context={};vm.createContext(context);vm.runInContext(about,context);
+  const html=vm.runInContext('aboutView()',context);
+  assert.equal((html.match(/data-companion=/g)||[]).length,4);
+  for(const name of ['mobile','desktop'])assert.ok(html.includes(`/assets/intro/about-${name}-final-v6.webp`));
+  assert.ok(html.indexOf('about-final-scene')<html.indexOf('about-toolbar'));
+  assert.ok(html.includes('每一種顏色，都值得被理解。留一點時間，遇見自己'));
 });

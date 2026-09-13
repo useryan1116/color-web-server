@@ -1,6 +1,7 @@
 /* ColorLab paper-touch: one-shot, interruptible motion; content never waits for it. */
 .exploration-loading,#route-status:not([hidden]){position:fixed;inset:80px 0 0;z-index:35;display:grid;place-items:center;padding:24px;background:rgba(241,240,238,.96);text-align:center}
-#route-status:not([hidden]){inset:80px 0 0;background:rgba(241,240,238,.86)}
+#route-status:not([hidden]){inset:80px 0 0;background:transparent;pointer-events:none}
+.account-app #main>.loading-scene{margin:80px auto;text-align:center}
 .loading-scene{width:min(100%,360px);padding:36px 20px;color:#555050}
 .loading-scene p{margin:24px 0 8px;font-size:18px;line-height:1.6}.loading-scene small{font-size:13px;color:#797473;line-height:1.6}
 .loading-colors{display:flex;justify-content:center;align-items:center;gap:16px;height:64px}
