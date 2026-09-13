@@ -2,7 +2,7 @@
 export function warmAssets() {
   const connection=navigator.connection;
   if(connection?.saveData||/^(slow-)?2g$/.test(connection?.effectiveType||''))return;
-  const urls=[innerHeight>innerWidth?'/assets/intro/about-mobile-v2.mp4':'/assets/intro/about-desktop-v2.mp4','/assets/music/about-soft-piano.mp3'];
+  const urls=[innerHeight>innerWidth?'/assets/intro/about-mobile-4k120-v4.mp4':'/assets/intro/about-desktop-4k120-v4.mp4','/assets/music/about-soft-piano-hq.flac'];
   const run=async()=>{
     for(const url of urls){
       if(document.hidden)return;

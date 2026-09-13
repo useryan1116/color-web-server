@@ -1,6 +1,6 @@
 // Default on; respect browser autoplay policy and the user's saved mute choice.
 import {draggableMusic} from './music-position.mjs';
-const tracks={home:'/assets/music/home-first-light.mp3',about:'/assets/music/about-soft-piano.mp3'};
+const tracks={home:'/assets/music/home-first-light-hq.flac',about:'/assets/music/about-soft-piano-hq.flac'};
 const button=document.createElement('button');
 button.type='button';button.className='ambient-music-action';button.setAttribute('role','switch');button.setAttribute('aria-label','配樂');
 const widget=document.createElement('div');widget.className='ambient-music-toggle';
@@ -9,8 +9,10 @@ const panel=widget.querySelector('.ambient-music-panel'),status=panel.querySelec
 const styles=document.createElement('style');styles.textContent=`
 .ambient-music-toggle{position:fixed;left:16px;bottom:calc(90px + env(safe-area-inset-bottom));z-index:80;display:flex;align-items:center;width:44px;height:44px;padding:0!important;border:1px solid #ded5d0;border-radius:24px;background:#fffdf8f5;color:#655d59;overflow:hidden;box-shadow:0 3px 12px #3934350a;transition:width 180ms cubic-bezier(.2,0,0,1),box-shadow 180ms}
 .ambient-music-toggle[data-open="true"]{width:148px;box-shadow:0 4px 16px #39343516}
+.ambient-music-toggle[data-side="right"]{flex-direction:row-reverse}
 .ambient-music-icon{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer;font:20px system-ui}
 .ambient-music-panel{display:flex;align-items:center;flex:1;min-width:0;padding-right:5px;opacity:0;transform:translateX(-4px);transition:opacity 100ms,transform 180ms;white-space:nowrap}
+.ambient-music-toggle[data-side="right"] .ambient-music-panel{padding:0 0 0 5px;transform:translateX(4px)}
 .ambient-music-toggle[data-open="true"] .ambient-music-panel{opacity:1;transform:translateX(0)}
 .ambient-music-panel p{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}
 .ambient-music-action{flex:0 0 96px;height:40px;padding:0 8px;border:0;border-radius:20px;background:#edf0e7;color:#41493c;font:12px system-ui;cursor:pointer;transition:background 120ms}
@@ -50,7 +52,7 @@ const fade=(audio,to,duration=700)=>{
   });
 };
 async function start(userInitiated=false) {
-  if(!enabled)return;
+  if(!enabled||document.hidden)return;
   const track=route();
   if(active?.track===track&&!active.audio.paused)return;
   const revision=++generation,previous=active,audio=new Audio(tracks[track]);
@@ -84,6 +86,12 @@ window.addEventListener('hashchange',()=>{if(enabled)start();});
 document.addEventListener('colorlab-page-route',()=>{if(enabled)start();});
 document.addEventListener('colorlab-page-gesture',()=>{collapse();if(needsGesture&&enabled)start(true);});
 window.addEventListener('pagehide',()=>{remember();++generation;active?.audio.pause();});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    remember();++generation;
+    document.querySelectorAll('audio.ambient-music-audio').forEach(audio=>audio.pause());
+  }else if(enabled)start();
+});
 window.addEventListener('pageshow',event=>{if(event.persisted&&enabled)start();});
 document.addEventListener('click',event=>{if(needsGesture&&enabled&&!button.contains(event.target))start();});
 enabled=saved().enabled!==false;label();if(enabled)start();

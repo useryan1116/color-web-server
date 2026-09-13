@@ -28,7 +28,7 @@ export function showIntro() {
   // The approved Remotion composition is rendered ahead of time, not on the phone.
   video=document.createElement('video');video.muted=true;video.defaultMuted=true;video.playsInline=true;
   video.preload='auto';video.setAttribute('aria-label','ColorLab 四色角色開場');
-  video.src=innerHeight>innerWidth?'/assets/intro/about-mobile-v2.mp4':'/assets/intro/about-desktop-v2.mp4';
+  video.src=innerHeight>innerWidth?'/assets/intro/about-mobile-4k120-v4.mp4':'/assets/intro/about-desktop-4k120-v4.mp4';
   video.style.cssText='width:100%;height:100%;object-fit:contain';
   video.addEventListener('ended',close,{once:true});video.addEventListener('error',close,{once:true});
   dialog.querySelector('[data-intro-stage]').replaceChildren(video);

@@ -21,12 +21,13 @@
     #pageTitle>span{display:block}
     #pageTitle em{display:inline-block;white-space:nowrap}
     #pageTitle .wake-handwritten{font-family:ColorLabHandwriting,sans-serif;font-size:clamp(26px,3vw,36px);font-weight:400;white-space:nowrap;line-height:1.4;margin-top:8px}
-    .wake-gathering{position:absolute;inset:15% 5% 12%;display:flex;align-items:flex-end;justify-content:center;gap:2%;z-index:3;pointer-events:none}
-    .wake-gathering .wake-character{position:relative;inset:auto;flex:0 1 46%;width:46%;min-width:0;height:100%;animation:gather-in .6s cubic-bezier(.22,1,.36,1) both}
-    .wake-gathering .wake-character img{width:100%;height:100%;object-fit:contain;object-position:center bottom;animation:none}
-    .wake-gathering[data-count="3"] .wake-character{flex-basis:30%}
-    .wake-gathering[data-count="4"] .wake-character{flex-basis:23%}
-    .wake-gathering[data-count="3"] .wake-character:nth-child(2),.wake-gathering[data-count="4"] .wake-character:nth-child(2),.wake-gathering[data-count="4"] .wake-character:nth-child(3){padding-bottom:12px}
+    /* Fit the widest possible cast at one common height, not equal-width slots. */
+    .wake-gathering{position:absolute;inset:15% 5% 12%;display:flex;align-items:flex-end;justify-content:center;gap:2%;z-index:3;pointer-events:none;container-type:size;--cast-ratio:.82;--cast-gap:0cqw}
+    .wake-gathering .wake-character{position:relative;inset:auto;flex:0 0 auto;width:auto;min-width:0;height:min(100cqh,calc((100cqw - var(--cast-gap))/var(--cast-ratio)));animation:gather-in .6s cubic-bezier(.22,1,.36,1) both}
+    .wake-gathering .wake-character img{width:auto;height:100%;max-width:none;object-fit:contain;object-position:center bottom;animation:none}
+    .wake-gathering[data-count="2"]{--cast-ratio:1.54;--cast-gap:2cqw}
+    .wake-gathering[data-count="3"]{--cast-ratio:2.20;--cast-gap:4cqw}
+    .wake-gathering[data-count="4"]{--cast-ratio:2.71;--cast-gap:6cqw}
     @keyframes gather-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
     @media(prefers-reduced-motion:reduce){.wake-gathering .wake-character{animation:none}}
     :root {
