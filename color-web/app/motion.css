@@ -60,9 +60,8 @@ dialog[open]::backdrop { animation: cl-shade 180ms ease-out; }
 @media(prefers-reduced-motion:no-preference){
   dialog.article-dialog[open]{animation:cl-article-slide 600ms cubic-bezier(.25,.46,.45,.94)}
   dialog.article-dialog[open]::backdrop{animation:cl-shade 400ms ease-out}
-  dialog.article-dialog[open] #dialog-content>h2{animation:cl-arrive 420ms 100ms var(--motion-ease) both}
 }
-@keyframes cl-article-slide{from{opacity:.4;transform:translateY(32px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes cl-article-slide{from{opacity:.4;transform:translateY(32px)}to{opacity:1;transform:none}}
 /* Error text remains in the live region; feedback never shakes a form or changes focus. */
 .form-status:not(:empty) { animation: cl-arrive 220ms var(--motion-ease); }
 

@@ -37,4 +37,6 @@ test('article animation is scoped and latest-news disclaimer is removed',()=>{
   assert.ok(!app.includes('活動日期與參加方式，請以主辦單位公告為準。'));
   assert.match(css,/@media\(prefers-reduced-motion:no-preference\)\{\s*dialog\.article-dialog\[open\]/);
   assert.match(css,/cl-article-slide 600ms/);
+  assert.doesNotMatch(css,/dialog\.article-dialog\[open\]\s+#dialog-content>h2\s*\{animation:/,'article heading must stay attached to the dialog');
+  assert.doesNotMatch(css.match(/@keyframes cl-article-slide\{[^\n]+/)[0],/scale\(/,'article text must not resize during entry');
 });
