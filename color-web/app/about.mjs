@@ -30,11 +30,14 @@ export function bindAbout(root) {
       clearTimeout(timeout);
       root.querySelectorAll('.is-speaking').forEach(other=>{other.classList.remove('is-speaking');other.querySelector('.about-bubble').textContent='';});
       const bubble=button.querySelector('.about-bubble');
-      bubble.textContent=button.querySelector('.about-saying').textContent;
+      const speaker=document.createElement('strong');speaker.textContent=companions[i][1]+'角色';
+      const message=document.createElement('span');message.textContent=button.querySelector('.about-saying').textContent;
+      bubble.replaceChildren(speaker,message);
       button.classList.add('is-speaking');
       button.getAnimations().forEach(a=>a.cancel());
-      if(!reduced.matches)button.animate([{transform:'rotate(0deg)'},{transform:`rotate(${i%2?-4:4}deg) translateY(-5px)`},{transform:'rotate(0deg)'}],{duration:850,easing:'ease-in-out'});
-      timeout=setTimeout(()=>{button.classList.remove('is-speaking');bubble.textContent='';},2400);
+      bubble.getAnimations().forEach(a=>a.cancel());
+      if(!reduced.matches)bubble.animate([{opacity:0,translate:'0 4px'},{opacity:1,translate:'0 0'}],{duration:180,easing:'ease-out'});
+      timeout=setTimeout(()=>{button.classList.remove('is-speaking');bubble.textContent='';},3500);
     };
   });
 }

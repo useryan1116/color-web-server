@@ -243,8 +243,9 @@ async function render() {
     ({page,survey,contentItems,currentRecords,userItems}=retained); mountedKey=routeKey;
     main.inert=false; main.removeAttribute('aria-busy');
     const notice=document.querySelector('#route-status');if(notice)notice.hidden=true;
-    window.scrollTo({top:retained.top,behavior:'instant'}); navigationMotion.commit(routeKey,{restored:true});
+    window.scrollTo({top:retained.top,behavior:'instant'});
     if(current==='about')bindAbout(main);
+    navigationMotion.commit(routeKey,{restored:true});
     return;
   }
   // Leave the previous page painted, but disable its actions until the destination is ready.

@@ -16,7 +16,7 @@ function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalon
   const document={...hub(),documentElement:top.document.documentElement,body:{append(){}},activeElement:null,
     querySelector:s=>s==='[data-intro-check]'?diagnostics||null:s==='.about-colorlab'?article:s==='.about-final-poster'?{getBoundingClientRect:()=>({left:20,top:120,width:350,height:525})}:dialogs.find(d=>d.open)||null,
     createElement(tag){const node=element();
-      if(tag==='dialog'){const skip=element(),stage=element();Object.assign(node,{skip,querySelector:s=>s==='button'?skip:stage,showModal(){this.open=true;},close(){this.open=false;}});dialogs.push(node);}
+      if(tag==='dialog'){const skip=element(),stage=element(),loading=element();Object.assign(node,{skip,loading,querySelector:s=>s==='button'?skip:s==='.intro-loading'?loading:stage,showModal(){this.open=true;},close(){this.open=false;}});dialogs.push(node);}
       if(tag==='details'){const output=element();Object.assign(node,{output,querySelector:()=>output});diagnostics=node;}
       if(tag==='video'){Object.assign(node,{readyState:0,currentTime:0,removeAttribute(){},load(){},pause(){this.paused=true;},play(){const rejected=fail||((failUntil&&!this.src.includes(failUntil))||(failFirstCodec&&!this.src.includes('hevc'))?'NotSupportedError':false);return defer?new Promise(r=>resolvePlay=r):rejected?Promise.reject(Object.assign(new Error('secret-message-not-for-output'),{name:typeof rejected==='string'?rejected:'Error'})):Promise.resolve();}});videos.push(node);}
       return node;
@@ -42,6 +42,15 @@ test('About plays once per top-level opening, not per click or iframe navigation
   first.route('#privacy');first.route('#about');assert.equal(await first.run(),1);
   assert.equal(await entry(top).run(),0,'a replacement iframe keeps the same opening');
   assert.equal(await entry(visit()).run(),1,'a fresh top-level document can play again');
+});
+test('shared color-dot loader stays until active video plays and returns on fallback',async()=>{
+  const page=entry(visit());await page.run();const dialog=page.dialogs[0],first=page.videos[0];
+  assert.equal(dialog.loading.hidden,false);
+  first.dispatchEvent(new Event('playing'));assert.equal(dialog.loading.hidden,true);
+  first.error={code:4};first.dispatchEvent(new Event('error'));assert.equal(dialog.loading.hidden,false);
+  first.dispatchEvent(new Event('playing'));assert.equal(dialog.loading.hidden,false,'stale video cannot hide loader');
+  page.videos[1].dispatchEvent(new Event('playing'));assert.equal(dialog.loading.hidden,true);
+  page.skip();assert.equal(dialog.open,false);
 });
 test('failed or abandoned playback does not consume the opening',async()=>{
   const top=visit(),failed=entry(top,{fail:true});

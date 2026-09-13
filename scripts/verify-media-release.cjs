@@ -5,8 +5,14 @@ const assets=['app/index.html','app/account.html','app/account.mjs','app/app.js'
 assets.push('assets/intro/about-mobile-4k120-hevc-v7.mp4','assets/intro/about-desktop-4k120-hevc-v7.mp4');
 assets.push(...['mobile','desktop'].flatMap(layout=>['2k','1080p'].flatMap(tier=>['hevc','avc'].map(codec=>`assets/intro/about-${layout}-${tier}120-${codec}-v8.mp4`))));
 assets.push('app/about.mjs','app/about.css','app/motion.css',...['desktop','mobile'].map(n=>'assets/intro/about-'+n+'-final-v6.webp'));
+assets.push('app/navigation-motion.mjs');
 (async()=>{
  const nonce=Date.now();
+ for(const retired of ['app/intro-check.html','app/intro-check.mjs']){
+   const r=await fetch('https://colorlab-start.onrender.com/'+retired,{redirect:'manual',signal:AbortSignal.timeout(30000)});
+   assert.equal(r.status,301,retired);assert.equal(r.headers.get('location'),'/app/account.html#about');
+   console.log('RETIRED',retired);
+ }
  for(let i=0;i<assets.length;i+=4)await Promise.all(assets.slice(i,i+4).map(async asset=>{
    const response=await fetch('https://colorlab-start.onrender.com/'+asset+'?verify='+nonce,{signal:AbortSignal.timeout(30000)});
    assert.equal(response.status,200,asset);

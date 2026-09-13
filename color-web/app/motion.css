@@ -1,7 +1,8 @@
 /* ColorLab paper-touch: one-shot, interruptible motion; content never waits for it. */
 .exploration-loading,#route-status:not([hidden]){position:fixed;inset:80px 0 0;z-index:35;display:grid;place-items:center;padding:24px;background:rgba(241,240,238,.96);text-align:center}
 #route-status:not([hidden]){inset:80px 0 0;background:transparent;pointer-events:none}
-.account-app #main>.loading-scene{margin:80px auto;text-align:center}
+.account-app #main>.loading-scene{position:fixed;inset:80px 0 0;margin:0;width:auto;display:grid;place-items:center;background:rgba(241,240,238,.96);z-index:35;text-align:center}
+.intro-loading:not([hidden]){position:absolute;inset:0;display:grid;place-items:center;background:rgba(241,240,238,.96)}
 .loading-scene{width:min(100%,360px);padding:36px 20px;color:#555050}
 .loading-scene p{margin:24px 0 8px;font-size:18px;line-height:1.6}.loading-scene small{font-size:13px;color:#797473;line-height:1.6}
 .loading-colors{display:flex;justify-content:center;align-items:center;gap:16px;height:64px}
@@ -56,6 +57,12 @@ progress::-webkit-progress-value { transition: width var(--motion-step) var(--mo
 .insight[open] p { animation: cl-arrive 220ms var(--motion-ease); }
 dialog[open] { animation: cl-dialog var(--motion-step) var(--motion-ease); }
 dialog[open]::backdrop { animation: cl-shade 180ms ease-out; }
+@media(prefers-reduced-motion:no-preference){
+  dialog.article-dialog[open]{animation:cl-article-slide 600ms cubic-bezier(.25,.46,.45,.94)}
+  dialog.article-dialog[open]::backdrop{animation:cl-shade 400ms ease-out}
+  dialog.article-dialog[open] #dialog-content>h2{animation:cl-arrive 420ms 100ms var(--motion-ease) both}
+}
+@keyframes cl-article-slide{from{opacity:.4;transform:translateY(32px) scale(.985)}to{opacity:1;transform:none}}
 /* Error text remains in the live region; feedback never shakes a form or changes focus. */
 .form-status:not(:empty) { animation: cl-arrive 220ms var(--motion-ease); }
 

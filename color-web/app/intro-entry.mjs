@@ -18,7 +18,8 @@ export function showIntro() {
   const dialog=document.createElement('dialog');
   dialog.setAttribute('aria-label','ColorLab 開場');
   dialog.style.cssText='position:fixed;inset:0;max-width:none;max-height:none;width:100vw;height:100dvh;margin:0;padding:0;border:0;background:#faf8f2;overflow:hidden;';
-  dialog.innerHTML='<div data-intro-stage style="display:flex;align-items:center;justify-content:center;width:100%;height:100%"><span style="font:600 32px system-ui">ColorLab<span style="color:#a44865">.</span></span></div><button type="button" style="position:absolute;right:24px;bottom:max(24px,env(safe-area-inset-bottom));padding:10px 18px;background:#fffefa;border:1px solid #d8ceca;border-radius:24px;color:#675b58;font:16px system-ui;cursor:pointer">跳過開場</button>';
+  dialog.innerHTML='<div data-intro-stage style="display:flex;align-items:center;justify-content:center;width:100%;height:100%"></div><div class="intro-loading" role="status" aria-label="載入中"><div class="loading-scene"><span class="loading-colors" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div></div><button type="button" style="position:absolute;right:24px;bottom:max(24px,env(safe-area-inset-bottom));padding:10px 18px;background:#fffefa;border:1px solid #d8ceca;border-radius:24px;color:#675b58;font:16px system-ui;cursor:pointer">跳過開場</button>';
+  const loading=dialog.querySelector('.intro-loading');
   let dispose,closed=false,video,finishExit,deadline;
   const skip=dialog.querySelector('button');
   skip.className='intro-skip';
@@ -63,6 +64,7 @@ export function showIntro() {
     ...['2k','1080p'].flatMap(tier=>['hevc','avc'].map(codec=>[tier==='2k'?'2K':'1080p',codec==='hevc'?'HEVC':'H.264',`about-${orientation}-${tier}120-${codec}-v8.mp4`]))];
   const playSource=(index=0)=>{
     if(closed)return;
+    loading.hidden=false;
     clearTimeout(deadline);
     const previous=video;video=null;
     previous?.pause();previous?.removeAttribute('src');previous?.load();
@@ -81,6 +83,7 @@ export function showIntro() {
       close(({NotAllowedError:'瀏覽器拒絕自動播放',NotSupportedError:'影片格式不支援',AbortError:'播放請求中斷'})[name]||'影片載入或解碼失敗');
     };
     candidate.addEventListener('ended',()=>{if(active())close('播放完成');},{once:true});
+    candidate.addEventListener('playing',()=>{if(active())loading.hidden=true;},{once:true});
     candidate.addEventListener('error',()=>failed(candidate.error?.code===4?'NotSupportedError':'MediaError'),{once:true});
     dialog.querySelector('[data-intro-stage]').replaceChildren(candidate);
     // Advance after stalled loading/playback; progress renews the deadline.

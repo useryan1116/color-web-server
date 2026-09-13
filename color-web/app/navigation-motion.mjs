@@ -8,12 +8,14 @@ export function createNavigationMotion(main) {
     const tabs=['home','surveys','history','me'];
     const tab=String(route).replace(/^#/,'');
     const previous=String(paintedRoute).replace(/^#/,'');
+    const informationPage=['about','privacy','contact'].includes(tab);
     const tabChange=tabs.includes(tab) && tabs.includes(previous);
     const mobileTab=view.matchMedia('(max-width:767px)').matches && tabChange;
-    const changed=paintedRoute!==null && paintedRoute!==route;
+    const changed=(paintedRoute!==null || informationPage) && paintedRoute!==route;
     paintedRoute=route;
     cancel();
-    if(!changed || (restored && !tabChange) || reduced.matches || main.ownerDocument.hidden)return null;
+    if(!changed || (restored && !tabChange && !informationPage) || reduced.matches || main.ownerDocument.hidden)return null;
+    if(informationPage && main.ownerDocument.querySelector('dialog[aria-label="ColorLab 開場"][open]'))return null;
     // A transformed ancestor would relocate the quiz's fixed mobile action bar.
     // Keep quiz controls, characters, and form entirely still; only its top line settles.
     const quiz=String(route).replace(/^#/,'').split('/')[0]==='test';
@@ -23,9 +25,9 @@ export function createNavigationMotion(main) {
     const transform=baseline.transform==='none' ? '' : baseline.transform;
     const opacity=Number(baseline.opacity);
     const animation=target.animate([
-      {transform:`${mobileTab ? `translateX(${tabs.indexOf(tab)>tabs.indexOf(previous)?32:-32}px)` : 'translateY(14px) scale(.985)'} ${transform}`.trim(),opacity:opacity*(mobileTab ? .72 : .86)},
+      {transform:`${informationPage ? 'translateY(32px)' : mobileTab ? `translateX(${tabs.indexOf(tab)>tabs.indexOf(previous)?32:-32}px)` : 'translateY(14px) scale(.985)'} ${transform}`.trim(),opacity:opacity*(informationPage ? .65 : mobileTab ? .72 : .86)},
       {transform:transform || 'none',opacity}
-    ],{duration:mobileTab?360:320,easing:'cubic-bezier(.22,1,.36,1)',fill:'none'});
+    ],{duration:informationPage?600:mobileTab?360:320,easing:informationPage?'cubic-bezier(.25,.46,.45,.94)':'cubic-bezier(.22,1,.36,1)',fill:'none'});
     active=animation;
     animation.onfinish=()=>{if(active===animation)active=null;};
     return animation;

@@ -121,7 +121,6 @@ function home() {
     ${reflectionView('mood')}
     <section class="editorial-section" aria-labelledby="news-heading"><div class="section-heading"><div><span class="eyebrow">SOMETHING TO EXPLORE</span><h2 id="news-heading">最近，值得留意的事</h2></div><a class="text-button collection-entry" href="#news">查看全部資訊${icon('arrow')}</a></div>
       <div class="horizontal-list" tabindex="0" aria-label="最新資訊，可左右滑動或使用方向鍵">${articles.map((a, i) => `<button class="article-card" data-article="${i}"><div class="article-image">${contentMedia(a)}<span class="tag">${escape(a.tag)}</span></div><div class="article-copy"><h3>${escape(a.title)}</h3><p>${escape(a.description)}</p>${sourceNote(a)}<span class="read-link">查看資訊 ${icon('arrow')}</span></div></button>`).join('')}</div>
-      <p class="archive-note">活動日期與參加方式，請以主辦單位公告為準。</p>
     </section>
     <section class="editorial-section resources" aria-labelledby="resources-heading"><div class="section-heading"><div><span class="eyebrow">A MOMENT FOR YOURSELF</span><h2 id="resources-heading">給心一點空間</h2></div><a class="text-button collection-entry" href="#resources">探索全部內容${icon('arrow')}</a></div>
       <div class="horizontal-list" tabindex="0" aria-label="一般資訊，可左右滑動或使用方向鍵">${resources.map((a, i) => `<button class="resource-card" data-resource="${i}">${contentMedia(a, 'compact')}<span class="resource-copy"><small>${escape(a.tag)}</small><h3>${escape(a.title)}</h3><p>${escape(a.description)}</p>${sourceNote(a)}</span>${icon('arrow')}</button>`).join('')}</div>
@@ -243,7 +242,7 @@ function openDialog(content) {
 }
 dialog.querySelector('.dialog-close').addEventListener('click', () => dialog.close());
 dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); } });
-dialog.addEventListener('close', () => { document.querySelector('#dialog-content').replaceChildren(); dialog.classList.remove('color-detail-dialog'); });
+dialog.addEventListener('close', () => { document.querySelector('#dialog-content').replaceChildren(); dialog.classList.remove('color-detail-dialog','article-dialog'); });
 document.addEventListener('pointerdown', () => dialog.setAttribute('data-pointer-focus', ''), true);
 document.addEventListener('keydown', () => document.querySelectorAll('[data-pointer-focus]').forEach(el => el.removeAttribute('data-pointer-focus')));
 
@@ -378,6 +377,7 @@ function bindPage() {
   document.querySelectorAll('[data-article], [data-resource]').forEach(button => button.addEventListener('click', () => {
     const isResource = button.hasAttribute('data-resource');
     const a = isResource ? resources[Number(button.dataset.resource)] : articles[Number(button.dataset.article)];
+    dialog.classList.add('article-dialog');
     openDialog(`<span class="eyebrow">${escape(a.tag)}</span><h2 id="dialog-title">${escape(a.title)}</h2><p>${escape(a.description)}</p>${sourceNote(a)}${contentMedia(a, 'poster')}${a.registrationUrl ? `<a class="button secondary" href="${escape(a.registrationUrl)}" target="_blank" rel="noopener noreferrer">主辦報名表${icon('external')}</a> ` : ''}${a.url ? `<a class="button primary" href="${escape(a.url)}" target="_blank" rel="noopener noreferrer">${a.tag === '研究論文' ? '查看期刊原文／DOI' : a.sourceNote ? '查看官方原文' : '前往網站'}${icon('external')}</a>` : '<p class="preview-note">此為原站活動存檔，日期與報名方式請參考海報。</p>'}${sourceHelp(a.url)}`);
   }));
   document.querySelector('[data-previous]')?.addEventListener('click', event => { if (draft().index > 0) { draft().index--; persist(); render('previous'); document.querySelector('legend').focus({ preventScroll: true }); quizFeedback.play('previous',event,document.querySelector('[data-previous]')); } });
