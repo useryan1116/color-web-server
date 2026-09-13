@@ -3,7 +3,9 @@ const fs=require('node:fs/promises'),path=require('node:path'),assert=require('n
 const root=path.resolve(__dirname,'../static-dist');
 const assets=['app/index.html','app/account.html','app/account.mjs','app/app.js','app/experience.css','app/ambient-music.mjs','app/site-shell.mjs','app/music-position.mjs','app/music-preference.mjs','app/first-tour.mjs','app/handwriting.css','app/font-ready.mjs','app/intro-entry.mjs','app/warm-assets.mjs','js/static-connection.js','manifest.webmanifest','service-worker.js','wake.html','colorlab-mark.svg','assets/fonts/ChenYuluoyan-v2.woff2','assets/intro/about-mobile-4k120-v6.mp4','assets/intro/about-desktop-4k120-v6.mp4','assets/music/home-first-light-hq.flac','assets/music/about-soft-piano-hq.flac',...['cl-180','cl-192','cl-512','cl-maskable-192','cl-maskable-512'].map(n=>'assets/icons/'+n+'-v2.png')];
 assets.push('assets/intro/about-mobile-4k120-hevc-v7.mp4','assets/intro/about-desktop-4k120-hevc-v7.mp4');
+assets.push(...['mobile','desktop'].flatMap(layout=>['2k','1080p'].flatMap(tier=>['hevc','avc'].map(codec=>`assets/intro/about-${layout}-${tier}120-${codec}-v8.mp4`))));
 assets.push('app/about.mjs','app/about.css','app/motion.css','app/intro-check.html','app/intro-check.mjs',
+  'assets/intro/diagnostics/mobile-uhd-120-hevc.mp4',
   ...['desktop','mobile'].map(n=>'assets/intro/about-'+n+'-final-v6.webp'),
   ...['mobile-full-60-hevc','mobile-small-120-hevc','mobile-small-60-hevc','mobile-small-60-avc'].map(n=>'assets/intro/diagnostics/'+n+'.mp4'));
 (async()=>{

@@ -11,7 +11,7 @@ function reportIntro(status,video) {
     const hero=article.querySelector?.('.about-hero');if(hero)hero.after(panel);else article.prepend(panel);
   }
   panel.querySelector('pre').textContent=[
-    '檢查版：20260913.3',`狀態：${status}`,
+    '檢查版：20260913.4',`狀態：${status}`,
     `獨立 App 模式：${navigator.standalone===true||matchMedia('(display-mode: standalone)').matches?'是':'否'}`,
     `減少動態：${matchMedia('(prefers-reduced-motion: reduce)').matches?'是':'否'}`,
     `本次開站已播放或跳過：${visitRoot.hasAttribute(seenAttribute)?'是':'否'}`,
@@ -37,7 +37,7 @@ export function showIntro() {
   dialog.setAttribute('aria-label','ColorLab 開場');
   dialog.style.cssText='position:fixed;inset:0;max-width:none;max-height:none;width:100vw;height:100dvh;margin:0;padding:0;border:0;background:#faf8f2;overflow:hidden;';
   dialog.innerHTML='<div data-intro-stage style="display:flex;align-items:center;justify-content:center;width:100%;height:100%"><span style="font:600 32px system-ui">ColorLab<span style="color:#a44865">.</span></span></div><button type="button" style="position:absolute;right:24px;bottom:max(24px,env(safe-area-inset-bottom));padding:10px 18px;background:#fffefa;border:1px solid #d8ceca;border-radius:24px;color:#675b58;font:16px system-ui;cursor:pointer">跳過開場</button>';
-  let dispose,closed=false,video,finishExit;
+  let dispose,closed=false,video,finishExit,deadline;
   const skip=dialog.querySelector('button');
   skip.className='intro-skip';
   const style=document.createElement('style');
@@ -52,7 +52,7 @@ export function showIntro() {
     finishExit=()=>{
       if(!dialog.open)return;
       document.dispatchEvent(new Event('colorlab-intro-close'));
-      dialog.close();dispose?.();dialog.remove();
+      dialog.close();dispose?.();video?.removeAttribute('src');video?.load();dialog.remove();
       window.removeEventListener('hashchange',close);window.removeEventListener('pagehide',close);
       if(prior instanceof HTMLElement && prior.isConnected)prior.focus({preventScroll:true});
     };
@@ -64,13 +64,13 @@ export function showIntro() {
         const width=Math.min(innerWidth,innerHeight*video.videoWidth/video.videoHeight),height=width*video.videoHeight/video.videoWidth;
         const left=(innerWidth-width)/2,top=(innerHeight-height)/2;
         video.style.cssText=`position:absolute;left:${left}px;top:${top}px;width:${width}px;height:${height}px;object-fit:contain;transform-origin:0 0`;
-        settle=video.animate([{transform:'translate(0,0) scale(1)'},{transform:`translate(${target.left-left}px,${target.top-top}px) scale(${target.width/width})`}],timing);
+        const padding=video.dataset.introPadded==='true'?(height-width*1.5)/2:0;
+        settle=video.animate([{transform:'translate(0,0) scale(1)'},{transform:`translate(${target.left-left}px,${target.top-top-padding*target.width/width}px) scale(${target.width/width})`}],timing);
       }
       const exit=dialog.animate([{opacity:1},{opacity:1,offset:.5},{opacity:0}],timing);
       Promise.allSettled([exit.finished,settle?.finished]).then(finishExit);
     }else finishExit();
   };
-  const deadline=setTimeout(()=>close('影片載入或播放逾時'),12000);
   dialog.querySelector('button').onclick=()=>{visitRoot.setAttribute(seenAttribute,'');close('使用者跳過');};
   dialog.addEventListener('cancel',event=>{event.preventDefault();close('使用者關閉');});
   window.addEventListener('hashchange',close);window.addEventListener('pagehide',close);
@@ -78,25 +78,36 @@ export function showIntro() {
   document.dispatchEvent(new CustomEvent('colorlab-intro-open',{detail:dialog}));
   // The approved Remotion composition is rendered ahead of time, not on the phone.
   const orientation=innerHeight>innerWidth?'mobile':'desktop';
-  const playSource=(alternative=false)=>{
+  const sources=[['4K','H.264',`about-${orientation}-4k120-v6.mp4`],['4K','HEVC',`about-${orientation}-4k120-hevc-v7.mp4`],
+    ...['2k','1080p'].flatMap(tier=>['hevc','avc'].map(codec=>[tier==='2k'?'2K':'1080p',codec==='hevc'?'HEVC':'H.264',`about-${orientation}-${tier}120-${codec}-v8.mp4`]))];
+  const playSource=(index=0)=>{
     if(closed)return;
-    video?.pause();
+    clearTimeout(deadline);
+    const previous=video;video=null;
+    previous?.pause();previous?.removeAttribute('src');previous?.load();
     const candidate=document.createElement('video');video=candidate;
     candidate.muted=true;candidate.defaultMuted=true;candidate.playsInline=true;
     candidate.preload='auto';candidate.setAttribute('aria-label','ColorLab 四色角色開場');
-    candidate.dataset.introCodec=alternative?'HEVC / 4K 120':'H.264 / 4K 120';
-    candidate.src=`/assets/intro/about-${orientation}-4k120-${alternative?'hevc-v7':'v6'}.mp4`;
+    const [tier,codec,file]=sources[index];
+    candidate.dataset.introCodec=`${codec} / ${tier} 120`;
+    candidate.dataset.introPadded=String(index>=2&&orientation==='mobile');
+    candidate.src='/assets/intro/'+file;
     candidate.style.cssText='width:100%;height:100%;object-fit:contain';
     const active=()=>!closed&&video===candidate;
     const failed=(name)=>{
       if(!active())return;
-      if(!alternative&&(name==='NotSupportedError'||[3,4].includes(candidate.error?.code))){playSource(true);return;}
+      if(index+1<sources.length&&(name==='NotSupportedError'||name==='TimeoutError'||name==='MediaError')){playSource(index+1);return;}
       close(({NotAllowedError:'瀏覽器拒絕自動播放',NotSupportedError:'影片格式不支援',AbortError:'播放請求中斷'})[name]||'影片載入或解碼失敗');
     };
     candidate.addEventListener('ended',()=>{if(active())close('播放完成');},{once:true});
     candidate.addEventListener('error',()=>failed(candidate.error?.code===4?'NotSupportedError':'MediaError'),{once:true});
     dialog.querySelector('[data-intro-stage]').replaceChildren(candidate);
-    reportIntro(alternative?'正在嘗試同畫質 HEVC 影片':'正在載入影片',candidate);
+    reportIntro(index?`正在切換至 ${tier}・120 幀`:'正在載入影片',candidate);
+    // Advance after stalled loading/playback; progress renews the deadline.
+    const arm=()=>{if(active()){clearTimeout(deadline);deadline=setTimeout(()=>failed('TimeoutError'),4000);}};
+    let lastTime=0;
+    candidate.addEventListener('timeupdate',()=>{if(candidate.currentTime>lastTime){lastTime=candidate.currentTime;arm();}});
+    arm();
     candidate.play().then(()=>{if(active()){visitRoot.setAttribute(seenAttribute,'');reportIntro('影片已開始播放',candidate);}}).catch(error=>failed(error?.name));
   };
   playSource();
