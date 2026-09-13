@@ -2,10 +2,10 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
-function setup(){
+function setup(mobile=false){
   const events={},reduced={matches:false,addEventListener(){},removeEventListener(){}};
   const animations=[],doc={hidden:false,querySelector:()=>null,addEventListener:(n,fn)=>events[n]=fn,removeEventListener(){}};
-  const view={matchMedia:q=>q.includes('reduced')?reduced:{matches:false},getComputedStyle:()=>({transform:'none',opacity:'1'}),addEventListener:(n,fn)=>events[n]=fn,removeEventListener(){}};
+  const view={matchMedia:q=>q.includes('reduced')?reduced:{matches:mobile},getComputedStyle:()=>({transform:'none',opacity:'1'}),addEventListener:(n,fn)=>events[n]=fn,removeEventListener(){}};
   doc.defaultView=view;
   const main={ownerDocument:doc,isConnected:true,querySelector:()=>null,animate:(frames,timing)=>{const a={frames,timing,cancelled:false,cancel(){this.cancelled=true;}};animations.push(a);return a;}};
   const context={};vm.runInNewContext(fs.readFileSync('color-web/app/navigation-motion.mjs','utf8').replace('export function','function'),context);
@@ -29,6 +29,23 @@ test('ordinary first paint and retained non-information pages remain unchanged',
   const p=setup();assert.equal(p.motion.commit('#home'),null);
   assert.equal(p.motion.commit('statistics',{restored:true}),null);
   assert.equal(p.motion.commit('records').timing.duration,320);
+});
+
+test('leaving a saved result or returning to it never shifts or scales the page',()=>{
+  for(const mobile of [false,true])for(const destination of ['#history','#home','#me']){
+    const p=setup(mobile);p.motion.commit('#result/review-new');
+    for(const route of [destination,'#result/review-new']){
+      const animation=p.motion.commit(route);
+      assert.ok(animation,'retain a gentle transition');
+      assert.deepEqual(Array.from(animation.frames,frame=>frame.transform),['none','none'],`${route}: scrolled content must remain in place throughout the transition`);
+    }
+  }
+});
+
+test('ordinary mobile tabs still slide and information pages retain their entrance',()=>{
+  const p=setup(true);p.motion.commit('#home');
+  assert.equal(p.motion.commit('#history').frames[0].transform,'translateX(32px)');
+  assert.equal(p.motion.commit('#privacy').frames[0].transform,'translateY(32px)');
 });
 test('article animation is scoped and latest-news disclaimer is removed',()=>{
   const app=fs.readFileSync('color-web/app/app.js','utf8'),css=fs.readFileSync('color-web/app/motion.css','utf8');

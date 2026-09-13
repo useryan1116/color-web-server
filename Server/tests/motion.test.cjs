@@ -20,7 +20,7 @@ test('motion is progressive enhancement and reduced motion keeps all information
   assert.match(css, /\.test-page \.question-area \{ animation: none/);
   assert.doesNotMatch(css, /\.hero-copy\s*\{\s*animation:|\.result-hero\s*\{\s*animation:/);
   for (const file of ['app.js','account.mjs']) assert.match(read(file), /createNavigationMotion/);
-  assert.match(read('navigation-motion.mjs'), /!changed \|\| \(restored && !tabChange\) \|\| reduced.matches/);
+  assert.match(read('navigation-motion.mjs'), /!changed \|\| \(restored && !tabChange && !informationPage\) \|\| reduced.matches/);
 });
 test('question direction is added without waiting or changing saved-answer ordering', () => {
   const app = read('app.js');

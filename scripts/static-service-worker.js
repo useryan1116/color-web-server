@@ -1,5 +1,5 @@
 // Independent frontend: cache public shell only, never tokens, records, APIs or Render wake HTML.
-const CACHE = 'colorlab-static-shell-v39';
+const CACHE = 'colorlab-static-shell-v40';
 const FONT_CACHE = 'colorlab-fonts-v2';
 const FONT = '/assets/fonts/ChenYuluoyan-v2.woff2';
 const OPTIONAL=['/assets/fonts/ChenYuluoyan-v2.woff2','/assets/intro/about-mobile-4k120-v6.mp4','/assets/intro/about-desktop-4k120-v6.mp4','/assets/music/home-first-light-hq.flac','/assets/music/about-soft-piano-hq.flac'];

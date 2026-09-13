@@ -9,6 +9,7 @@ export function createNavigationMotion(main) {
     const tab=String(route).replace(/^#/,'');
     const previous=String(paintedRoute).replace(/^#/,'');
     const informationPage=['about','privacy','contact'].includes(tab);
+    const resultTransition=[tab,previous].some(value=>value.split('/')[0]==='result');
     const tabChange=tabs.includes(tab) && tabs.includes(previous);
     const mobileTab=view.matchMedia('(max-width:767px)').matches && tabChange;
     const changed=(paintedRoute!==null || informationPage) && paintedRoute!==route;
@@ -25,7 +26,7 @@ export function createNavigationMotion(main) {
     const transform=baseline.transform==='none' ? '' : baseline.transform;
     const opacity=Number(baseline.opacity);
     const animation=target.animate([
-      {transform:`${informationPage ? 'translateY(32px)' : mobileTab ? `translateX(${tabs.indexOf(tab)>tabs.indexOf(previous)?32:-32}px)` : 'translateY(14px) scale(.985)'} ${transform}`.trim(),opacity:opacity*(informationPage ? .65 : mobileTab ? .72 : .86)},
+      {transform:resultTransition ? transform || 'none' : `${informationPage ? 'translateY(32px)' : mobileTab ? `translateX(${tabs.indexOf(tab)>tabs.indexOf(previous)?32:-32}px)` : 'translateY(14px) scale(.985)'} ${transform}`.trim(),opacity:opacity*(informationPage ? .65 : mobileTab ? .72 : .86)},
       {transform:transform || 'none',opacity}
     ],{duration:informationPage?600:mobileTab?360:320,easing:informationPage?'cubic-bezier(.25,.46,.45,.94)':'cubic-bezier(.22,1,.36,1)',fill:'none'});
     active=animation;
