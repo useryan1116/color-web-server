@@ -30,3 +30,17 @@ test('a normal iframe pageshow still syncs the current route',()=>{
   page.window.dispatch('pageshow',{persisted:false});
   assert.equal(page.replaces,1);
 });
+
+test('native back routes a same-document child by hash instead of reloading its old result frame',()=>{
+  const source=fs.readFileSync('color-web/app/site-shell.mjs','utf8');
+  const start=source.lastIndexOf("  window.addEventListener('hashchange', () => {");
+  const end=source.indexOf('\n  });',start)+6;
+  const block=source.slice(start,end);
+  const window=events();
+  let replaced=0,childHash='#result/old';
+  const childLocation={origin:'https://example.test',pathname:'/app/',search:'',get href(){return `https://example.test/app/${childHash}`;},replace(){replaced++;},get hash(){return childHash;},set hash(value){childHash=value;}};
+  vm.runInNewContext(block,{URL,window,location:{href:'https://example.test/app/#history'},frame:{contentWindow:{location:childLocation}}});
+  window.dispatch('hashchange');
+  assert.equal(replaced,0,'native back must not reload the stale result iframe');
+  assert.equal(childHash,'#history');
+});

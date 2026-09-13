@@ -44,7 +44,14 @@ if (embedded) {
     frame.contentDocument?.dispatchEvent(new Event('colorlab-visit-restored'));
   });
   window.addEventListener('hashchange', () => {
-    if (frame.contentWindow.location.href !== location.href) frame.contentWindow.location.replace(location.href);
+    const target = new URL(location.href);
+    const current = frame.contentWindow.location;
+    if (current.href === target.href) return;
+    if (current.origin === target.origin && current.pathname === target.pathname && current.search === target.search) {
+      current.hash = target.hash;
+      return;
+    }
+    current.replace(target.href);
   });
   frame.addEventListener('load', () => {
     try {
