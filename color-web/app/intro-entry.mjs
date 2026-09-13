@@ -1,6 +1,9 @@
 export function showIntro() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || location.hash!=='#about') return;
-  try { if(sessionStorage.getItem('colorlab-about-intro-seen'))return;sessionStorage.setItem('colorlab-about-intro-seen','1'); } catch { return; }
+  // Share one visit across internal pages; reopening/reloading gets a fresh shell.
+  const visit=window.top.document.documentElement;
+  if(visit.hasAttribute('data-colorlab-intro-seen'))return;
+  visit.setAttribute('data-colorlab-intro-seen','');
   const dialog=document.createElement('dialog');
   dialog.setAttribute('aria-label','ColorLab 開場');
   dialog.style.cssText='position:fixed;inset:0;max-width:none;max-height:none;width:100vw;height:100dvh;margin:0;padding:0;border:0;background:#faf8f2;overflow:hidden;';

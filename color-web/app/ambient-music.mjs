@@ -37,40 +37,53 @@ document.addEventListener('colorlab-intro-close',()=>{collapse();document.body.a
 document.addEventListener('colorlab-tour-open',event=>{collapse();event.detail.append(widget);});
 document.addEventListener('colorlab-tour-close',place);
 document.addEventListener('colorlab-tour-gesture',()=>{if(enabled)start();});
-let enabled=false,active=null,generation=0,needsGesture=false;
+let enabled=false,active=null,pending=null,generation=0,needsGesture=false;
 const route=()=>location.hash==='#about'?'about':'home';
 const saved=()=>{try{return JSON.parse(sessionStorage.getItem('colorlab-music')||'{}');}catch{return {};}};
-const remember=()=>{try{sessionStorage.setItem('colorlab-music',JSON.stringify({enabled,track:active?.track,source:tracks[active?.track],time:active?.audio.currentTime||0}));}catch{}};
+const remember=()=>{try{const positions=saved().positions||{};if(active)positions[active.track]={source:tracks[active.track],time:active.audio.currentTime||0};sessionStorage.setItem('colorlab-music',JSON.stringify({enabled,positions,track:active?.track,source:tracks[active?.track],time:active?.audio.currentTime||0}));}catch{}};
 const label=()=>{button.textContent=enabled?'ON · 開啟':'OFF · 關閉';button.setAttribute('aria-checked',String(enabled));status.textContent=needsGesture?'已啟用，等待播放':'配樂'+(enabled?'已開啟':'已關閉');button.title=status.textContent;};
 const fades=new WeakMap();
-const fade=(audio,to,duration=700)=>{
+const fade=(audio,to,duration=700,curve='smooth')=>{
   const token={};fades.set(audio,token);
   const from=audio.volume,start=performance.now();
   return new Promise(resolve=>{
-    const tick=()=>{if(fades.get(audio)!==token){resolve();return;}const fraction=Math.min(1,(performance.now()-start)/duration);const eased=fraction*fraction*(3-2*fraction);audio.volume=from+(to-from)*eased;if(fraction<1)requestAnimationFrame(tick);else resolve();};
+    const tick=()=>{if(fades.get(audio)!==token){resolve();return;}const fraction=Math.min(1,(performance.now()-start)/duration);const eased=curve==='in'?Math.sin(fraction*Math.PI/2):curve==='out'?1-Math.cos(fraction*Math.PI/2):fraction*fraction*(3-2*fraction);audio.volume=from+(to-from)*eased;if(fraction<1)requestAnimationFrame(tick);else resolve();};
     tick();
   });
 };
 async function start(userInitiated=false) {
   if(!enabled||document.hidden)return;
   const track=route();
-  if(active?.track===track&&!active.audio.paused)return;
+  if(pending?.track===track)return;
+  if(pending){++generation;pending.audio.pause();pending.audio.remove();pending=null;}
+  if(active?.track===track){
+    if(!active.audio.paused)return;
+    const audio=active.audio,revision=++generation;pending=active;
+    try{await audio.play();if(revision!==generation){audio.pause();return;}pending=null;needsGesture=false;label();fade(audio,.24,350);}
+    catch(error){if(revision!==generation)return;pending=null;needsGesture=error.name==='NotAllowedError';label();}
+    remember();return;
+  }
+  remember();
   const revision=++generation,previous=active,audio=new Audio(tracks[track]);
   audio.preload='none';audio.loop=true;audio.volume=0;
   audio.hidden=true;audio.className='ambient-music-audio';document.body.append(audio);
   const state=saved();
-  audio.addEventListener('loadedmetadata',()=>{if(state.track===track&&state.source===tracks[track]&&Number.isFinite(state.time)&&audio.duration>0)audio.currentTime=Math.max(0,state.time%audio.duration);},{once:true});
-  active={track,audio};
+  const position=state.positions?.[track]||(state.track===track?state:null);
+  audio.addEventListener('loadedmetadata',()=>{if(position?.source===tracks[track]&&Number.isFinite(position.time)&&audio.duration>0)audio.currentTime=Math.max(0,position.time%audio.duration);},{once:true});
+  pending={track,audio};
   try{
     await audio.play();
     if(revision!==generation){audio.pause();audio.remove();return;}
+    active={track,audio};pending=null;
     button.title='配樂播放中';
     needsGesture=false;label();
-    fade(audio,.24,userInitiated?350:3000);
-    if(previous)fade(previous.audio,0).then(()=>{previous.audio.pause();previous.audio.remove();});
+    const crossfade=previous&&!previous.audio.paused;
+    fade(audio,.24,crossfade?1800:userInitiated?350:3000,crossfade?'in':'smooth');
+    if(previous)fade(previous.audio,0,crossfade?1800:250,crossfade?'out':'smooth').then(()=>{previous.audio.pause();previous.audio.remove();});
   }catch(error){
     audio.pause();audio.remove();
     if(revision!==generation)return;
+    pending=null;
     active=previous&&!previous.audio.paused?previous:null;needsGesture=error.name==='NotAllowedError';enabled=Boolean(active)||needsGesture;label();
     button.title=needsGesture?'配樂已啟用，等待首次操作後開始播放。':'配樂載入失敗，可重新開啟重試。';
   }
@@ -80,16 +93,16 @@ button.onclick=()=>{
   needsGesture=false;
   enabled=!enabled;label();
   if(enabled)start(true);
-  else{++generation;const old=active;active=null;if(old)fade(old.audio,0,250).then(()=>{old.audio.pause();old.audio.remove();});remember();}
+  else{++generation;remember();pending=null;active=null;document.querySelectorAll('audio.ambient-music-audio').forEach(audio=>fade(audio,0,250).then(()=>{audio.pause();audio.remove();}));remember();}
 };
 window.addEventListener('hashchange',()=>{if(enabled)start();});
 document.addEventListener('colorlab-page-route',()=>{if(enabled)start();});
 document.addEventListener('colorlab-page-gesture',()=>{collapse();if(needsGesture&&enabled)start(true);});
-window.addEventListener('pagehide',()=>{remember();++generation;active?.audio.pause();});
+const pauseHidden=()=>{remember();++generation;if(pending){pending.audio.pause();pending.audio.remove();pending=null;}document.querySelectorAll('audio.ambient-music-audio').forEach(audio=>{fades.delete(audio);audio.pause();});};
+window.addEventListener('pagehide',pauseHidden);
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){
-    remember();++generation;
-    document.querySelectorAll('audio.ambient-music-audio').forEach(audio=>audio.pause());
+    pauseHidden();
   }else if(enabled)start();
 });
 window.addEventListener('pageshow',event=>{if(event.persisted&&enabled)start();});

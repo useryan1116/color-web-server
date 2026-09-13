@@ -21,11 +21,12 @@ test('backgrounding pauses music, returning resumes at saved time, manual mute s
   vm.runInContext(source,context);
   const settle=()=>new Promise(resolve=>setImmediate(resolve));
   await settle();assert.equal(audios.length,1);assert.equal(audios[0].paused,false);
-  audios[0].currentTime=12;
+  const original=audios[0];audios[0].currentTime=12;
   document.hidden=true;docEvents.visibilitychange();assert.ok(audios.every(a=>a.paused));
   docEvents['colorlab-page-route']();await settle();assert.ok(audios.every(a=>a.paused),'route changes cannot play while hidden');
   document.hidden=false;docEvents.visibilitychange();await settle();
   assert.equal(audios.length,1);assert.equal(audios[0].paused,false);assert.equal(audios[0].currentTime,12);
+  assert.equal(audios[0],original,'returning reuses the paused player without loading a replacement');
   elements[0].onclick();await settle();assert.equal(audios.length,0);
   document.hidden=true;docEvents.visibilitychange();document.hidden=false;docEvents.visibilitychange();await settle();
   assert.equal(audios.length,0,'returning must respect manual mute');
