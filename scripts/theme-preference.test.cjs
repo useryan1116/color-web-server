@@ -41,3 +41,20 @@ test('both documents load the shared theme in head and public cache includes it'
   }
   const sw=fs.readFileSync('scripts/static-service-worker.js','utf8');assert.match(sw,/system-theme.css/);assert.match(sw,/theme-preference.js/);
 });
+
+test('dark interface surfaces cover loading, media credits and result overlays',()=>{
+  const css=fs.readFileSync('color-web/app/system-theme.css','utf8');
+  assert.match(css,/\.intro-loading:not\(\[hidden\]\)\{background:#211f24f5\}/);
+  assert.match(css,/\.media-poster \.media-credit.*background:var\(--panel\);color:var\(--muted\)/);
+  assert.match(css,/\.mood-panel::before\{opacity:\.12\}/);
+  assert.match(css,/\.result-hero\.result-paper::after\{background:linear-gradient\(180deg,#2c292f/);
+});
+
+test('dark dialogue and secondary text palettes remain readable',()=>{
+  const luminance=hex=>hex.match(/\w\w/g).map(c=>parseInt(c,16)/255).map(c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4).reduce((sum,c,i)=>sum+c*[.2126,.7152,.0722][i],0);
+  const css=fs.readFileSync('color-web/app/system-theme.css','utf8');
+  for(const color of ['c0b3b8','ffb0b2','ebd17b','b4d5a9','b0cef8']){
+    assert.ok(css.includes('#'+color));
+    assert.ok((luminance(color)+.05)/(luminance('2c292f')+.05)>=4.5,color);
+  }
+});

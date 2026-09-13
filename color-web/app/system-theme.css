@@ -34,3 +34,25 @@
   /* The movie's final frame and its matching page poster remain one original scene. */
   .about-final-hero{color:#393435}
   .about-final-hero .about-scroll-cue{color:#785a65}
+  /* Interface surfaces follow the theme; embedded artwork retains its colors. */
+  .exploration-loading,.account-app #main>.loading-scene,.intro-loading:not([hidden]){background:#211f24f5}
+  .loading-scene,.loading-scene small{color:var(--muted)}
+  .survey-cover,.source-help,.media-poster .media-credit,.content-media .source-thumbnail{background:var(--panel);color:var(--muted)}
+  .article-image{background:var(--subtle)}
+  .content-media{--cover-paper:var(--panel);--cover-ink:var(--ink)}
+  .account-app .form-status{color:#ffb0bb}
+  .verification-badge.is-verified{background:#344536;color:#c5e3c9}
+  .mood-panel::before{opacity:.12}
+  .result-hero.result-paper{color:var(--ink)}
+  .result-hero.result-paper::after{background:linear-gradient(180deg,#2c292f80 0%,#2c292f00 18%,#2c292f00 34%,#2c292ff2 56%,#2c292f 100%)}
+  .history-result-labels span{color:var(--result-ink,#393435)}
+  .history-mbti,.history-open{color:var(--rose)}
+  .result-paper .result-intro>strong{color:var(--ink)!important}
+  .swatch[data-hue="0"]{color:#a13b4b}
+  :is(#records-list,#review-results)[aria-busy="true"]::before{color:var(--rose)}
+  .about-final-hero{background:var(--paper)}
+  .about-bubble,.about-final-scene .about-bubble::after{background:var(--panel)}
+  .about-character[data-companion="red"] .about-bubble{color:#ffb0b2;--bubble-edge:#b76f78}
+  .about-character[data-companion="yellow"] .about-bubble{color:#ebd17b;--bubble-edge:#99854a}
+  .about-character[data-companion="green"] .about-bubble{color:#b4d5a9;--bubble-edge:#709466}
+  .about-character[data-companion="blue"] .about-bubble{color:#b0cef8;--bubble-edge:#728fbc}
