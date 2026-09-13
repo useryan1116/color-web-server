@@ -1,6 +1,8 @@
 // Independent frontend: cache public shell only, never tokens, records, APIs or Render wake HTML.
-const CACHE = 'colorlab-static-shell-v17';
+const CACHE = 'colorlab-static-shell-v18';
+const OPTIONAL=['/assets/fonts/ChenYuluoyan-v2.woff2','/assets/intro/about-mobile-v2.mp4','/assets/intro/about-desktop-v2.mp4','/assets/music/home-first-light.mp3','/assets/music/about-soft-piano.mp3'];
 const SHELL = ['/app/', '/app/app.js', '/app/model.mjs', '/app/client.mjs', '/app/auth.mjs', '/app/ui.mjs', '/app/account.html', '/app/account.mjs', '/app/account.css', '/app/style.css', '/app/motion.css', '/js/static-connection.js', '/colorlab-mark.svg', '/wake.html'];
+SHELL.push('/app/site-shell.mjs','/app/font-ready.mjs','/app/handwriting.css','/app/ambient-music.mjs','/app/music-position.mjs','/app/music-preference.mjs','/app/warm-assets.mjs');
 SHELL.push('/app/verification-status.mjs', '/app/verification-status.css');
 SHELL.push('/app/character-art.mjs');
 SHELL.push('/assets/images/survey-color-cover-20260906.webp');
@@ -17,9 +19,9 @@ self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).the
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('colorlab-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  if (event.request.method !== 'GET' || url.origin !== self.location.origin || !SHELL.includes(url.pathname)) return;
+  if (event.request.method !== 'GET' || url.origin !== self.location.origin || event.request.headers.has('Range') || ![...SHELL,...OPTIONAL].includes(url.pathname)) return;
   // Published artwork is refreshed with each shell version, not downloaded on every tab switch.
-  if (/\.(?:webp|png|svg)$/.test(url.pathname)) {
+  if (/\.(?:webp|png|svg)$/.test(url.pathname)||OPTIONAL.includes(url.pathname)) {
     event.respondWith(caches.open(CACHE).then(async cache => {
       const stored = await cache.match(event.request);
       if (stored) return stored;

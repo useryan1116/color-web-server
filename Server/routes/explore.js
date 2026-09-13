@@ -51,6 +51,15 @@ router.use(async (req, res, next) => {
 });
 
 router.get('/me', (req, res) => res.json({ id: String(req.member._id), role: req.memberRole, email: req.member.email, name: req.member.name, ...(req.memberRole === 'user' ? { emailVerifiedAt: req.member.emailVerifiedAt || null, emailVerificationRequired: req.member.emailVerificationRequired === true } : {}) }));
+router.get('/music-preference',handle(async(req,res)=>{
+  const value=await require('../models/MusicPreference').findOne({ownerId:req.member._id,ownerRole:req.memberRole}).lean();
+  res.json({position:value?.position||null});
+}));
+router.put('/music-preference',handle(async(req,res)=>{
+  if(!require('../services/musicPreference').validPositionBody(req.body))return res.status(400).json({message:'配樂位置格式不正確。'});
+  await require('../models/MusicPreference').findOneAndUpdate({ownerId:req.member._id,ownerRole:req.memberRole},{$set:{position:req.body.position}},{upsert:true,runValidators:true});
+  res.json({position:req.body.position});
+}));
 router.route('/records/legacy-import').all((req, res, next) => {
   if (req.memberRole !== 'admin') return res.status(403).json({ message: '請使用管理員帳號同步舊紀錄。' });
   next();

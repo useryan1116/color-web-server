@@ -15,6 +15,12 @@
   }
   let connectionPromise;
   const connect = () => connectionPromise ||= (async () => {
+    const content = document.querySelector('iframe[data-colorlab-page]');
+    if (content) {
+      if (!content.contentWindow.ColorLabConnection) await new Promise(resolve => content.addEventListener('load', resolve, {once:true}));
+      await content.contentWindow.ColorLabConnection?.ready;
+      return;
+    }
     try {
       const response = await nativeFetch(backend + '/health', { cache: 'no-store', signal: AbortSignal.timeout(1500) });
       if (response.ok && (await response.text()).trim() === 'OK') return;

@@ -1,4 +1,5 @@
 // Default on; respect browser autoplay policy and the user's saved mute choice.
+import {draggableMusic} from './music-position.mjs';
 const tracks={home:'/assets/music/home-first-light.mp3',about:'/assets/music/about-soft-piano.mp3'};
 const button=document.createElement('button');
 button.type='button';button.className='ambient-music-action';button.setAttribute('role','switch');button.setAttribute('aria-label','配樂');
@@ -19,13 +20,15 @@ const styles=document.createElement('style');styles.textContent=`
 @media(prefers-reduced-motion:reduce){.ambient-music-toggle,.ambient-music-panel{transition:none!important}}
 `;document.head.append(styles);
 const trigger=widget.querySelector('.ambient-music-icon');
-const expand=open=>{widget.dataset.open=String(open);trigger.setAttribute('aria-expanded',String(open));panel.inert=!open;};
+let reposition=()=>{};
+const expand=open=>{widget.dataset.open=String(open);trigger.setAttribute('aria-expanded',String(open));panel.inert=!open;reposition();};
 const collapse=()=>expand(false);
 trigger.onclick=()=>expand(widget.dataset.open!=='true');
 widget.addEventListener('keydown',event=>{if(event.key==='Escape'&&widget.dataset.open==='true'){event.preventDefault();event.stopPropagation();collapse();trigger.focus();}});
 document.addEventListener('click',event=>{if(!widget.contains(event.target))collapse();});
 const place=()=>{collapse();(document.querySelector('dialog[aria-label="ColorLab 開場"][open]')||document.body).append(widget);};
 place();
+reposition=draggableMusic(widget,trigger);
 document.addEventListener('colorlab-about-ready',place);
 document.addEventListener('colorlab-intro-open',event=>{collapse();event.detail.append(widget);});
 document.addEventListener('colorlab-intro-close',()=>{collapse();document.body.append(widget);});
@@ -52,20 +55,21 @@ async function start(userInitiated=false) {
   if(active?.track===track&&!active.audio.paused)return;
   const revision=++generation,previous=active,audio=new Audio(tracks[track]);
   audio.preload='none';audio.loop=true;audio.volume=0;
+  audio.hidden=true;audio.className='ambient-music-audio';document.body.append(audio);
   const state=saved();
   audio.addEventListener('loadedmetadata',()=>{if(state.track===track&&state.source===tracks[track]&&Number.isFinite(state.time)&&audio.duration>0)audio.currentTime=Math.max(0,state.time%audio.duration);},{once:true});
   active={track,audio};
   try{
     await audio.play();
-    if(revision!==generation){audio.pause();return;}
+    if(revision!==generation){audio.pause();audio.remove();return;}
     button.title='配樂播放中';
     needsGesture=false;label();
     fade(audio,.24,userInitiated?350:3000);
-    if(previous)fade(previous.audio,0).then(()=>previous.audio.pause());
+    if(previous)fade(previous.audio,0).then(()=>{previous.audio.pause();previous.audio.remove();});
   }catch(error){
-    audio.pause();previous?.audio.pause();
+    audio.pause();audio.remove();
     if(revision!==generation)return;
-    active=null;needsGesture=error.name==='NotAllowedError';enabled=needsGesture;label();
+    active=previous&&!previous.audio.paused?previous:null;needsGesture=error.name==='NotAllowedError';enabled=Boolean(active)||needsGesture;label();
     button.title=needsGesture?'配樂已啟用，等待首次操作後開始播放。':'配樂載入失敗，可重新開啟重試。';
   }
   remember();
@@ -74,9 +78,11 @@ button.onclick=()=>{
   needsGesture=false;
   enabled=!enabled;label();
   if(enabled)start(true);
-  else{++generation;const old=active;active=null;if(old)fade(old.audio,0,250).then(()=>old.audio.pause());remember();}
+  else{++generation;const old=active;active=null;if(old)fade(old.audio,0,250).then(()=>{old.audio.pause();old.audio.remove();});remember();}
 };
 window.addEventListener('hashchange',()=>{if(enabled)start();});
+document.addEventListener('colorlab-page-route',()=>{if(enabled)start();});
+document.addEventListener('colorlab-page-gesture',()=>{collapse();if(needsGesture&&enabled)start(true);});
 window.addEventListener('pagehide',()=>{remember();++generation;active?.audio.pause();});
 window.addEventListener('pageshow',event=>{if(event.persisted&&enabled)start();});
 document.addEventListener('click',event=>{if(needsGesture&&enabled&&!button.contains(event.target))start();});

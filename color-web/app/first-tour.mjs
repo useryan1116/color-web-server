@@ -8,7 +8,7 @@ const steps=[
 ];
 export function offerTour(){
   if(running||attempted||!['','#home'].includes(location.hash))return;
-  try{if(localStorage.getItem(key)&&new URLSearchParams(location.search).get('tour')!=='1')return;}catch{}
+  try{if(localStorage.getItem(key))return;}catch{}
   attempted=true;
   // Wait for the existing brief brand entrance, without delaying page data.
   setTimeout(()=>{if(['','#home'].includes(location.hash)&&!document.querySelector('dialog[open]'))openTour();},900);
@@ -61,6 +61,7 @@ function openTour(){
   dialog.addEventListener('cancel',event=>{event.preventDefault();gesture();close();});
   window.addEventListener('hashchange',routeExit);window.addEventListener('pagehide',routeExit);
   document.body.append(dialog);dialog.showModal();
+  try{localStorage.setItem(key,'1');}catch{}
   document.dispatchEvent(new CustomEvent('colorlab-tour-open',{detail:dialog.querySelector('[data-tour-music]')}));
   show();position();
 }

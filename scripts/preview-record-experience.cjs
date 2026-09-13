@@ -17,6 +17,9 @@ app.get('/',(req,res)=>res.type('html').send(`<!doctype html><html lang="zh-Hant
 app.get('/health',(_req,res)=>res.send('OK'));
 app.get('/api/explore/catalog',(_req,res)=>res.json([survey]));
 app.get('/api/explore/me',(_req,res)=>res.json(member));
+let musicPosition=null;
+app.get('/api/explore/music-preference',(_req,res)=>res.json({position:musicPosition}));
+app.put('/api/explore/music-preference',(req,res)=>{if(!require('../Server/services/musicPreference').validPositionBody(req.body))return res.status(400).json({message:'位置格式不正確'});musicPosition=req.body.position;res.json({position:musicPosition});});
 app.get('/api/user/profile',(_req,res)=>res.json(member));
 app.get('/api/homepage',(_req,res)=>res.json([]));
 app.get('/api/explore/records',(_req,res)=>res.json(records));

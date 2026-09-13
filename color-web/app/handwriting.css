@@ -1,3 +1,5 @@
-@font-face{font-family:ColorLabHandwriting;src:url('/assets/fonts/ChenYuluoyan-Thin-Monospaced.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:ColorLabHandwriting;src:url('/assets/fonts/ChenYuluoyan-v2.woff2') format('woff2');font-weight:400;font-style:normal;font-display:block}
+html:not([data-handwriting]) :is(#home-heading,.home-handwritten,.mood-choice h2,.guide-gentle-note h2,.about-intention h2,.about-columns h2,.about-lead,.about-email h2,#pageTitle,#pageTitle .wake-handwritten,#promptText){visibility:hidden}
+html[data-handwriting=fallback] :is(#home-heading,.home-handwritten,.mood-choice h2,.guide-gentle-note h2,.about-intention h2,.about-columns h2,.about-lead,.about-email h2,#pageTitle,#pageTitle .wake-handwritten,#promptText){font-family:system-ui,sans-serif!important}
 .mood-choice h2,.account-app .guide-gentle-note h2{font-family:ColorLabHandwriting,var(--body-font);font-size:clamp(28px,3vw,36px);font-weight:400;line-height:1.5;letter-spacing:0}
 #home-heading,.home-handwritten{font-family:ColorLabHandwriting,var(--body-font);font-weight:400;letter-spacing:0}
