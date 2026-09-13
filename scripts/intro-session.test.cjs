@@ -9,21 +9,24 @@ function hub(){const events=new Map();return {
   dispatchEvent(e){for(const fn of [...(events.get(e.type)||[])])fn(e);}
 };}
 function visit(){const attributes=new Map();return {document:{documentElement:{hasAttribute:k=>attributes.has(k),setAttribute:(k,v)=>attributes.set(k,v),removeAttribute:k=>attributes.delete(k)}}};}
-function entry(top,{hash='#about',reduced=false,fail=false,defer=false}={}){
-  const dialogs=[],videos=[];let resolvePlay;
-  const element=()=>({...hub(),style:{},setAttribute(){},append(){},replaceChildren(){},remove(){}});
+function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalone=false}={}){
+  const dialogs=[],videos=[];let resolvePlay,diagnostics;
+  const element=()=>({...hub(),style:{},dataset:{},setAttribute(){},append(){},prepend(){},replaceChildren(){},remove(){}});
+  const article=element();
   const document={...hub(),documentElement:top.document.documentElement,body:{append(){}},activeElement:null,
-    querySelector:()=>dialogs.find(d=>d.open)||null,
+    querySelector:s=>s==='[data-intro-check]'?diagnostics||null:s==='.about-colorlab'?article:dialogs.find(d=>d.open)||null,
     createElement(tag){const node=element();
       if(tag==='dialog'){const skip=element(),stage=element();Object.assign(node,{skip,querySelector:s=>s==='button'?skip:stage,showModal(){this.open=true;},close(){this.open=false;}});dialogs.push(node);}
-      if(tag==='video'){Object.assign(node,{pause(){},play(){return defer?new Promise(r=>resolvePlay=r):fail?Promise.reject(new Error('unavailable')):Promise.resolve();}});videos.push(node);}
+      if(tag==='details'){const output=element();Object.assign(node,{output,querySelector:()=>output});diagnostics=node;}
+      if(tag==='video'){Object.assign(node,{readyState:0,currentTime:0,pause(){},play(){return defer?new Promise(r=>resolvePlay=r):fail?Promise.reject(Object.assign(new Error('secret-message-not-for-output'),{name:typeof fail==='string'?fail:'Error'})):Promise.resolve();}});videos.push(node);}
       return node;
     }};
   const window={...hub(),top};
-  const context={URL,Event,CustomEvent,HTMLElement:class {},window,document,location:{hash,href:'https://example.test/app/account.html'+hash,pathname:'/app/account.html',origin:'https://example.test'},matchMedia:()=>({matches:reduced}),innerHeight:844,innerWidth:390,setTimeout:()=>1,clearTimeout(){}};
+  const context={URL,Event,CustomEvent,HTMLElement:class {},window,document,navigator:{standalone},location:{hash,href:'https://example.test/app/account.html'+hash,pathname:'/app/account.html',origin:'https://example.test'},matchMedia:q=>({matches:q.includes('reduced-motion')?reduced:standalone}),innerHeight:844,innerWidth:390,setTimeout:()=>1,clearTimeout(){}};
   vm.createContext(context);vm.runInContext(source,context);
   const settle=()=>new Promise(r=>setImmediate(r));
   return {document,window,dialogs,videos,async run(){vm.runInContext('showIntro()',context);await settle();return videos.length;},
+    get diagnosticText(){return diagnostics?.output.textContent||'';},
     skip(){dialogs.at(-1)?.skip.onclick();},
     route(hash){context.location.hash=hash;window.dispatchEvent(new Event('hashchange'));},
     async click(){document.dispatchEvent({type:'click',button:0,target:{closest:()=>({href:'https://example.test/app/account.html#about',hasAttribute:()=>false})},preventDefault(){}});await settle();return videos.length;},
@@ -72,4 +75,16 @@ test('restoring cached About DOM invokes its entry hook',()=>{
 test('home and reduced motion do not consume the opening',async()=>{
   const top=visit();assert.equal(await entry(top,{hash:'#home'}).run(),0);
   assert.equal(await entry(top,{reduced:true}).run(),0);assert.equal(await entry(top).run(),1);
+});
+test('temporary diagnostics distinguish reduced motion, visit gate and actual playback',async()=>{
+  const top=visit(),reduced=entry(top,{reduced:true,standalone:true});await reduced.run();
+  assert.match(reduced.diagnosticText,/減少動態設定略過/);assert.match(reduced.diagnosticText,/獨立 App 模式：是/);
+  const page=entry(top);await page.run();assert.match(page.diagnosticText,/影片已開始播放/);page.skip();
+  assert.match(page.diagnosticText,/使用者跳過/);await page.run();assert.match(page.diagnosticText,/本次開站已播放或跳過/);
+});
+test('temporary diagnostics show failure category without raw exception text or credentials',async()=>{
+  for(const [fail,label] of [['NotAllowedError','瀏覽器拒絕自動播放'],['NotSupportedError','影片格式不支援'],['AbortError','播放請求中斷']]){
+    const page=entry(visit(),{fail});await page.run();assert.match(page.diagnosticText,new RegExp(label));
+    assert.doesNotMatch(page.diagnosticText,/secret-message|example.test/);
+  }
 });
