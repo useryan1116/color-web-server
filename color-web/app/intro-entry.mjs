@@ -7,11 +7,11 @@ function reportIntro(status,video) {
   if(!panel){
     panel=document.createElement('details');panel.dataset.introCheck='';
     panel.style.cssText='margin:12px 0;padding:10px 14px;border:1px solid #ddd8d1;border-radius:12px;color:#625c55;font:14px/1.6 system-ui;text-align:left';
-    panel.innerHTML='<summary style="cursor:pointer">動畫檢查資訊（暫時）</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;margin:8px 0 0"></pre>';
+    panel.innerHTML='<summary style="cursor:pointer">動畫檢查資訊（暫時）</summary><p><a class="button secondary" href="/app/intro-check.html">開啟六項影片對照測試 →</a></p><pre style="white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;margin:8px 0 0"></pre>';
     const hero=article.querySelector?.('.about-hero');if(hero)hero.after(panel);else article.prepend(panel);
   }
   panel.querySelector('pre').textContent=[
-    '檢查版：20260913.2',`狀態：${status}`,
+    '檢查版：20260913.3',`狀態：${status}`,
     `獨立 App 模式：${navigator.standalone===true||matchMedia('(display-mode: standalone)').matches?'是':'否'}`,
     `減少動態：${matchMedia('(prefers-reduced-motion: reduce)').matches?'是':'否'}`,
     `本次開站已播放或跳過：${visitRoot.hasAttribute(seenAttribute)?'是':'否'}`,
