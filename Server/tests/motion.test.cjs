@@ -34,5 +34,6 @@ test('question direction is added without waiting or changing saved-answer order
   assert.doesNotMatch(app, /animationend|transitionend/);
 });
 test('About scroll invitation remains animated after the intro', () => {
-  assert.match(read('about.css'), /about-scroll-invite 1\.6s ease-in-out infinite/);
+  assert.match(read('about.css'), /\.about-scroll-cue span\{animation:about-scroll-invite 1\.6s ease-in-out infinite\}/);
+  assert.doesNotMatch(read('about.css'), /prefers-reduced-motion:no-preference\)\{\.about-scroll-cue/);
 });
