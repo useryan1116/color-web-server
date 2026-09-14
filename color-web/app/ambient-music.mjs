@@ -4,10 +4,10 @@ const tracks={home:'/assets/music/home-first-light-hq.flac',about:'/assets/music
 const button=document.createElement('button');
 button.type='button';button.className='ambient-music-action';button.setAttribute('role','switch');button.setAttribute('aria-label','配樂');
 const widget=document.createElement('div');widget.className='ambient-music-toggle';
-widget.innerHTML='<button type="button" class="ambient-music-icon" aria-label="配樂設定" aria-expanded="false" aria-controls="ambient-music-panel"><span aria-hidden="true">♫</span></button><div id="ambient-music-panel" class="ambient-music-panel" inert><p aria-live="polite"></p></div>';
+widget.innerHTML='<button type="button" class="ambient-to-top" aria-label="回到頁面頂端" title="回到頁面頂端" hidden><span aria-hidden="true">↑</span></button><button type="button" class="ambient-music-icon" aria-label="配樂設定" aria-expanded="false" aria-controls="ambient-music-panel"><span aria-hidden="true">♫</span></button><div id="ambient-music-panel" class="ambient-music-panel" inert><p aria-live="polite"></p></div>';
 const panel=widget.querySelector('.ambient-music-panel'),status=panel.querySelector('p');panel.append(button);
 const styles=document.createElement('style');styles.textContent=`
-.ambient-music-toggle{position:fixed;left:16px;bottom:calc(90px + env(safe-area-inset-bottom));z-index:80;display:flex;align-items:center;width:44px;height:44px;padding:0!important;border:1px solid #ded5d0;border-radius:24px;background:#fffdf8f5;color:#655d59;overflow:hidden;box-shadow:0 3px 12px #3934350a;transition:width 180ms cubic-bezier(.2,0,0,1),box-shadow 180ms}
+.ambient-music-toggle{position:fixed;left:16px;bottom:calc(90px + env(safe-area-inset-bottom));z-index:80;display:flex;align-items:center;width:44px;height:44px;padding:0!important;border:1px solid #ded5d0;border-radius:24px;background:#fffdf8f5;color:#655d59;overflow:visible;box-shadow:0 3px 12px #3934350a;transition:width 180ms cubic-bezier(.2,0,0,1),box-shadow 180ms}
 .ambient-music-toggle[data-open="true"]{width:148px;box-shadow:0 4px 16px #39343516}
 .ambient-music-toggle[data-side="right"]{flex-direction:row-reverse}
 .ambient-music-icon{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer;font:20px system-ui}
@@ -17,11 +17,12 @@ const styles=document.createElement('style');styles.textContent=`
 .ambient-music-panel p{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}
 .ambient-music-action{flex:0 0 96px;height:40px;padding:0 8px;border:0;border-radius:20px;background:#edf0e7;color:#41493c;font:12px system-ui;cursor:pointer;transition:background 120ms}
 .ambient-music-action[aria-checked="false"]{background:#efede8;color:#756e65}
-.ambient-music-icon:focus-visible,.ambient-music-action:focus-visible{outline:2px solid #64715d;outline-offset:-3px}
+.ambient-to-top{position:absolute;left:0;bottom:52px;display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #ded5d0;border-radius:50%;background:#fffdf8f5;color:#655d59;box-shadow:0 3px 12px #39343516;cursor:pointer;font:22px system-ui;transition:opacity 180ms,transform 180ms}.ambient-to-top[hidden]{display:none}.ambient-music-toggle[data-side="right"] .ambient-to-top{left:auto;right:0}
+.ambient-music-icon:focus-visible,.ambient-music-action:focus-visible,.ambient-to-top:focus-visible{outline:2px solid #64715d;outline-offset:-3px}
 .first-tour .ambient-music-toggle{position:relative!important;left:auto;bottom:auto;min-height:44px;padding:0!important}
 @media(prefers-reduced-motion:reduce){.ambient-music-toggle,.ambient-music-panel{transition:none!important}}
 `;document.head.append(styles);
-const trigger=widget.querySelector('.ambient-music-icon');
+const trigger=widget.querySelector('.ambient-music-icon'),toTop=widget.querySelector('.ambient-to-top');
 let reposition=()=>{};
 const expand=open=>{widget.dataset.open=String(open);trigger.setAttribute('aria-expanded',String(open));panel.inert=!open;reposition();};
 const collapse=()=>expand(false);
@@ -31,6 +32,11 @@ document.addEventListener('click',event=>{if(!widget.contains(event.target))coll
 const place=()=>{collapse();(document.querySelector('dialog[aria-label="ColorLab 開場"][open]')||document.body).append(widget);};
 place();
 reposition=draggableMusic(widget,trigger);
+const pageFrame=()=>document.querySelector('iframe[data-colorlab-page]');
+const syncTop=()=>{const view=pageFrame()?.contentWindow;toTop.hidden=location.hash!=='#about'||(view?.scrollY||0)<Math.min(500,(view?.innerHeight||800)*.65);};
+const bindPageScroll=()=>{const view=pageFrame()?.contentWindow;if(!view)return;view.addEventListener('scroll',syncTop,{passive:true});syncTop();};
+toTop.onclick=()=>pageFrame()?.contentWindow?.scrollTo({top:0,behavior:'smooth'});
+pageFrame()?.addEventListener('load',bindPageScroll);document.addEventListener('colorlab-page-route',bindPageScroll);bindPageScroll();
 document.addEventListener('colorlab-about-ready',place);
 document.addEventListener('colorlab-intro-open',event=>{collapse();event.detail.append(widget);});
 document.addEventListener('colorlab-intro-close',()=>{collapse();document.body.append(widget);});

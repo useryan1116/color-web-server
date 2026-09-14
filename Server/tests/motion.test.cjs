@@ -36,4 +36,11 @@ test('question direction is added without waiting or changing saved-answer order
 test('About scroll invitation remains animated after the intro', () => {
   assert.match(read('about.css'), /\.about-scroll-cue span\{animation:about-scroll-invite 1\.6s ease-in-out infinite\}/);
   assert.doesNotMatch(read('about.css'), /prefers-reduced-motion:no-preference\)\{\.about-scroll-cue/);
+  assert.match(read('about.css'), /translateY\(9px\)/);
+});
+test('movable music control carries an About back-to-top action', () => {
+  const music=read('ambient-music.mjs');
+  assert.match(music, /class="ambient-to-top"/);
+  assert.match(music, /iframe\[data-colorlab-page\]/);
+  assert.match(music, /scrollTo\(\{top:0,behavior:'smooth'\}\)/);
 });
