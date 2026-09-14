@@ -40,7 +40,7 @@ export function showIntro() {
       window.removeEventListener('hashchange',close);window.removeEventListener('pagehide',close);
       if(prior instanceof HTMLElement && prior.isConnected)prior.focus({preventScroll:true});
     };
-    if(status==='播放完成'&&dialog.animate&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    if(status==='播放完成'&&dialog.animate){
       const timing={duration:520,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'};
       const target=document.querySelector('.about-final-poster')?.getBoundingClientRect();
       let settle;

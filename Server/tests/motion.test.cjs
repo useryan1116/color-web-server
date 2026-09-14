@@ -10,10 +10,14 @@ test('shared motion is delivered to app, account and PDF without an animation de
   assert.match(read('motion.css'), /\.completion-feedback\.is-leaving\{opacity:0;pointer-events:none\}/);
   assert.equal((read('motion.css').match(/infinite/g)||[]).length,1,'only the temporary waiting indicator loops');
 });
-test('motion is progressive enhancement and reduced motion keeps all information visible', () => {
+test('site motion policy keeps animations active regardless of the OS preference', () => {
   const css = read('motion.css');
-  assert.match(css, /prefers-reduced-motion: reduce/);
-  assert.match(css, /animation: none !important; transition: none !important/);
+  const policy = read('motion-policy.js');
+  for (const file of ['index.html', 'account.html', 'pdf.html']) assert.match(read(file), /motion-policy\.js/);
+  assert.match(policy, /window\.matchMedia = query => nativeMatchMedia\(allowMotion\(query\)\)/);
+  assert.match(policy, /prefers-reduced-motion\\s\*:\\s\*reduce/);
+  assert.match(policy, /prefers-reduced-motion\\s\*:\\s\*no-preference/);
+  assert.match(policy, /MutationObserver/);
   const contentMotion = css.split('/* Success is a short, opaque interstitial')[0];
   assert.doesNotMatch(contentMotion, /display:\s*none|visibility:\s*hidden/);
   assert.match(read('completion-feedback.mjs'), /setTimeout\(\(\) => el.remove\(\), 650\)/);

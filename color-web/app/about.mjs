@@ -1,4 +1,4 @@
-import { showIntro } from './intro-entry.mjs';
+import { showIntro } from './intro-entry.mjs?v=20260914d';
 const companions = [
   ['red','紅色','帶著一點好奇，開始吧。'],
   ['yellow','黃色','新的發現，也許就在下一個選擇。'],
@@ -34,7 +34,7 @@ export function bindAbout(root) {
       dialogue.dataset.companion=button.dataset.companion;
       button.classList.add('is-speaking');
       button.getAnimations().forEach(a=>a.cancel());
-      if(!reduced.matches)dialogue.animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'ease-out'});
+      dialogue.animate?.([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:300,easing:'ease-out'});
       timeout=setTimeout(()=>{button.classList.remove('is-speaking');dialogue.textContent='';delete dialogue.dataset.companion;},3500);
     };
   });
