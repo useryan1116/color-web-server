@@ -190,16 +190,7 @@ test('high-refresh displays avoid 120fps when the browser reports decoding will 
   assert.match(constrained.videos[0].src,/4k80/);
 });
 
-test('dropped-frame fallback never starts from the beginning before seeking to the current frame',async()=>{
-  const page=entry(visit(),{drop:true,delayedSeek:true,withAnimation:true});await page.run();
-  page.videos[0].currentTime=1.4;page.videos[0].seeking=false;page.videos[0].dispatchEvent(new Event('playing'));
-  await page.latestTimeout();assert.equal(page.videos.length,2);
-  page.videos[1].dispatchEvent(new Event('canplay'));await new Promise(r=>setImmediate(r));
-  assert.equal(page.videos[1].playedBeforeSeek,false,'fallback must wait for seeked before play');
-  assert.equal(page.videos[1].playCalls,0);page.videos[1].seeking=false;page.videos[1].dispatchEvent(new Event('seeked'));await new Promise(r=>setImmediate(r));assert.equal(page.videos[1].playCalls,1);
-});
-test('one opening never chains performance fallbacks or crossfades duplicate video layers',async()=>{
-  const page=entry(visit(),{drop:true,withAnimation:true});await page.run();page.videos[0].dispatchEvent(new Event('playing'));
-  await page.latestTimeout();page.videos[1].dispatchEvent(new Event('canplay'));await new Promise(r=>setImmediate(r));page.videos[1].dispatchEvent(new Event('playing'));await page.latestTimeout();
-  assert.equal(page.videos.length,2);assert.equal(page.animations.filter(a=>a.options.duration===180).length,0);
+test('an intro that has started never swaps to a second video version',async()=>{
+  const page=entry(visit(),{drop:true});await page.run();page.videos[0].dispatchEvent(new Event('playing'));
+  assert.equal(page.timerCount,1,'only the stalled-playback deadline remains');assert.equal(page.videos.length,1);
 });

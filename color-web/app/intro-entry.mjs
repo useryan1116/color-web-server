@@ -64,7 +64,7 @@ export function showIntro() {
   document.dispatchEvent(new CustomEvent('colorlab-intro-open',{detail:dialog}));
   // The approved Remotion composition is rendered ahead of time, not on the phone.
   const orientation=innerHeight>innerWidth?'mobile':'desktop';
-  let sources=[],performanceFallback=false;
+  let sources=[];
   const playSource=(index=0,background=false,resumeAt=0)=>{
     if(closed)return;
     if(!background)loading.hidden=false;
@@ -87,7 +87,7 @@ export function showIntro() {
       close(({NotAllowedError:'瀏覽器拒絕自動播放',NotSupportedError:'影片格式不支援',AbortError:'播放請求中斷'})[name]||'影片載入或解碼失敗');
     };
     candidate.addEventListener('ended',()=>{if(active())close('播放完成');},{once:true});
-    candidate.addEventListener('playing',()=>{if(!active())return;loading.hidden=true;const start=candidate.getVideoPlaybackQuality?.();if(fps>60&&!performanceFallback&&start)setTimeout(()=>{if(!active())return;const end=candidate.getVideoPlaybackQuality(),total=end.totalVideoFrames-start.totalVideoFrames,dropped=end.droppedVideoFrames-start.droppedVideoFrames;if(total>12&&dropped/total>.05&&index+1<sources.length){performanceFallback=true;playSource(index+1,true,candidate.currentTime);}},500);},{once:true});
+    candidate.addEventListener('playing',()=>{if(active())loading.hidden=true;},{once:true});
     candidate.addEventListener('error',()=>failed(candidate.error?.code===4?'NotSupportedError':'MediaError'),{once:true});
     const stage=dialog.querySelector('[data-intro-stage]');
     if(background&&previous){candidate.style.cssText+=';position:absolute;inset:0;opacity:0';stage.style.position='relative';stage.append(candidate);candidate.addEventListener('canplay',()=>{if(!active())return;clearTimeout(deadline);const swap=()=>candidate.play().then(()=>{previous.pause();previous.remove();candidate.style.cssText='width:100%;height:100%;object-fit:contain';}).catch(error=>failed(error?.name)),target=Math.min(resumeAt,Math.max(0,candidate.duration-.1));if(target>.05){candidate.addEventListener('seeked',swap,{once:true});candidate.currentTime=target;}else swap();},{once:true});deadline=setTimeout(()=>failed('TimeoutError'),4000);candidate.load();return;}
