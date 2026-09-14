@@ -34,7 +34,7 @@ export function bindAbout(root) {
       dialogue.dataset.companion=button.dataset.companion;
       button.classList.add('is-speaking');
       button.getAnimations().forEach(a=>a.cancel());
-      if(!reduced.matches)dialogue.animate([{opacity:0,translate:'-50% 4px'},{opacity:1,translate:'-50% 0'}],{duration:180,easing:'ease-out'});
+      if(!reduced.matches)dialogue.animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'ease-out'});
       timeout=setTimeout(()=>{button.classList.remove('is-speaking');dialogue.textContent='';delete dialogue.dataset.companion;},3500);
     };
   });
