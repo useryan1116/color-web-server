@@ -37,13 +37,20 @@ const topExcluded=()=>['survey','surveys','test'].includes(location.hash.slice(1
 const syncTop=()=>{const view=pageFrame()?.contentWindow;toTop.hidden=topExcluded()||(view?.scrollY||0)<Math.min(500,(view?.innerHeight||800)*.65);};
 const bindPageScroll=()=>{const view=pageFrame()?.contentWindow;if(!view)return;view.addEventListener('scroll',syncTop,{passive:true});syncTop();};
 const animateTop=view=>{
-  const from=view.scrollY,start=view.performance.now(),duration=620;
-  const step=now=>{
-    const t=Math.min(1,(now-start)/duration);
-    view.scrollTo(0,from*(1-t));
-    if(t<1)view.requestAnimationFrame(step);
-  };
-  step(start+4);
+  const from=view.scrollY;
+  if(from<=0||typeof view.scrollTo!=='function') return;
+  try{
+    view.scrollTo({top:0,left:0,behavior:'smooth'});
+    return;
+  }catch{
+    const start=view.performance.now(),duration=340;
+    const step=now=>{
+      const t=Math.min(1,(now-start)/duration);
+      view.scrollTo(0,from*(1-t));
+      if(t<1)view.requestAnimationFrame(step);
+    };
+    step(start);
+  }
 };
 toTop.onclick=()=>{const view=pageFrame()?.contentWindow;if(view)animateTop(view);};
 pageFrame()?.addEventListener('load',bindPageScroll);document.addEventListener('colorlab-page-route',bindPageScroll);bindPageScroll();
