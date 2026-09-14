@@ -22,13 +22,25 @@ export function aboutView() {
 export function bindAbout(root) {
   document.dispatchEvent(new Event('colorlab-about-ready'));
   showIntro();
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const scrollCue=root.querySelector('.about-scroll-cue');
   const arrow=scrollCue?.querySelector('span');
   cancelAnimationFrame(scrollFrame);
   const started=performance.now(),pulse=now=>{if(!arrow?.isConnected)return;const phase=(now-started)%1600/1600,y=Math.sin(phase*Math.PI)**2;arrow.style.transform=`translateY(${Math.round(y*12)}px)`;arrow.style.opacity=String(.45+y*.55);scrollFrame=requestAnimationFrame(pulse);};
   if(arrow){arrow.style.setProperty('animation','none','important');scrollFrame=requestAnimationFrame(pulse);}
-  if(scrollCue)scrollCue.onclick=()=>{const heading=root.querySelector('.about-intention h2');if(!heading)return;heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});heading.scrollIntoView({behavior:reduced.matches?'instant':'smooth',block:'start'});};
+  const scrollToIntention=()=>{
+    const heading=root.querySelector('.about-intention h2');
+    if(!heading)return;
+    const from=window.scrollY,start=performance.now(),duration=640;
+    const run=now=>{
+      const t=Math.min(1,(now-start)/duration),y=Math.sin((t*Math.PI)/2);
+      window.scrollTo(0,from*(1-y));
+      if(t<1)window.requestAnimationFrame(run);
+    };
+    heading.setAttribute('tabindex','-1');
+    heading.focus({preventScroll:true});
+    window.requestAnimationFrame(run);
+  };
+  if(scrollCue)scrollCue.onclick=scrollToIntention;
   let timeout;
   const dialogue=root.querySelector('.about-dialogue');
   root.querySelectorAll('[data-companion]').forEach(button=>{

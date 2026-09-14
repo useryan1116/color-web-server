@@ -36,7 +36,15 @@ const pageFrame=()=>document.querySelector('iframe[data-colorlab-page]');
 const topExcluded=()=>['survey','surveys','test'].includes(location.hash.slice(1).split('/')[0]);
 const syncTop=()=>{const view=pageFrame()?.contentWindow;toTop.hidden=topExcluded()||(view?.scrollY||0)<Math.min(500,(view?.innerHeight||800)*.65);};
 const bindPageScroll=()=>{const view=pageFrame()?.contentWindow;if(!view)return;view.addEventListener('scroll',syncTop,{passive:true});syncTop();};
-const animateTop=view=>{const from=view.scrollY,start=view.performance.now(),step=now=>{const t=Math.min(1,(now-start)/420);view.scrollTo(0,from*Math.pow(1-t,2));if(t<1)view.requestAnimationFrame(step);};step(start+4);};
+const animateTop=view=>{
+  const from=view.scrollY,start=view.performance.now(),duration=620;
+  const step=now=>{
+    const t=Math.min(1,(now-start)/duration);
+    view.scrollTo(0,from*(1-t));
+    if(t<1)view.requestAnimationFrame(step);
+  };
+  step(start+4);
+};
 toTop.onclick=()=>{const view=pageFrame()?.contentWindow;if(view)animateTop(view);};
 pageFrame()?.addEventListener('load',bindPageScroll);document.addEventListener('colorlab-page-route',bindPageScroll);bindPageScroll();
 document.addEventListener('colorlab-about-ready',place);

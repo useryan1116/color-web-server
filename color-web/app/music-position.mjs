@@ -31,7 +31,7 @@ export function draggableMusic(widget, handle) {
   });
   const finish=event=>{
     if(!drag||drag.id!==event.pointerId)return;
-    suppressClick=drag.moved;if(drag.moved){const from=widget.getBoundingClientRect().left,target=from+22<innerWidth/2?8:innerWidth-52;point.x=target/Math.max(1,innerWidth-44);apply();widget.animate?.([{transform:`translateX(${from-target}px)`},{transform:'translateX(0)'}],{duration:260,easing:'cubic-bezier(.2,.8,.2,1)'});save();}drag=null;
+    suppressClick=drag.moved;if(drag.moved){const from=widget.getBoundingClientRect().left,target=from+22<innerWidth/2?8:innerWidth-52;point.x=target/Math.max(1,innerWidth-44);apply();widget.animate?.([{transform:`translateX(${from-target}px)`},{transform:'translateX(0)'}],{duration:420,easing:'cubic-bezier(.2,.8,.2,1)'});save();}drag=null;
     if(handle.hasPointerCapture(event.pointerId))handle.releasePointerCapture(event.pointerId);
     setTimeout(()=>{suppressClick=false;},0);
   };
