@@ -33,7 +33,7 @@
   #navigation.tab-scrubber::after{border-color:#f8ddea66;background:linear-gradient(145deg,#8f657777,#593a50cc);box-shadow:0 4px 18px #0005,inset 0 1px 2px #ffffff30}
   /* The movie's final frame and its matching page poster remain one original scene. */
   .about-final-hero{color:#393435}
-  .about-final-hero .about-scroll-cue{color:#785a65}
+  .about-final-hero .about-scroll-cue{color:#fff4f7}
   /* Interface surfaces follow the theme; embedded artwork retains its colors. */
   .exploration-loading,.account-app #main>.loading-scene,.intro-loading:not([hidden]){background:#211f24f5}
   .loading-scene,.loading-scene small{color:var(--muted)}
@@ -48,7 +48,7 @@
   .history-mbti,.history-open{color:var(--rose)}
   .swatch[data-hue="0"]{color:#a13b4b}
   :is(#records-list,#review-results)[aria-busy="true"]::before{color:var(--rose)}
-  .about-final-hero{background:var(--paper)}
+  .about-final-hero{background:transparent}
   .about-bubble,.about-final-scene .about-bubble::after{background:var(--panel)}
   .about-character[data-companion="red"] .about-bubble{color:#ffb0b2;--bubble-edge:#b76f78}
   .about-character[data-companion="yellow"] .about-bubble{color:#ebd17b;--bubble-edge:#99854a}

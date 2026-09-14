@@ -9,7 +9,7 @@ function hub(){const events=new Map();return {
   dispatchEvent(e){for(const fn of [...(events.get(e.type)||[])])fn(e);}
 };}
 function visit(){const attributes=new Map();return {document:{documentElement:{hasAttribute:k=>attributes.has(k),setAttribute:(k,v)=>attributes.set(k,v),removeAttribute:k=>attributes.delete(k)}}};}
-function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalone=false,failUntil='',withAnimation=false,refresh=120,dpr=4,drop=false,delayedSeek=false}={}){
+function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalone=false,failUntil='',withAnimation=false,refresh=120,dpr=4,drop=false,delayedSeek=false,smooth120=true}={}){
   const dialogs=[],videos=[],animations=[],timers=new Map();let resolvePlay,diagnostics,timerId=0,frameTime=0;
   const element=()=>({...hub(),style:{},dataset:{},setAttribute(){},append(){},prepend(){},replaceChildren(){},remove(){},...(withAnimation?{animate(frames,options){let resolve,reject;const finished=new Promise((r,j)=>{resolve=r;reject=j;});animations.push({frames,options,resolve,reject});return {finished};}}:{})});
   const article=element();
@@ -22,7 +22,7 @@ function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalon
       return node;
     }};
   const window={...hub(),top};
-  const context={URL,Event,CustomEvent,HTMLElement:class {},window,document,navigator:{standalone},location:{hash,href:'https://example.test/app/account.html'+hash,pathname:'/app/account.html',origin:'https://example.test'},matchMedia:q=>({matches:q.includes('reduced-motion')?reduced:standalone}),innerHeight:844,innerWidth:390,devicePixelRatio:dpr,requestAnimationFrame(fn){frameTime+=1000/refresh;fn(frameTime);},setTimeout(fn){timers.set(++timerId,fn);return timerId;},clearTimeout(id){timers.delete(id);}};
+  const context={URL,Event,CustomEvent,HTMLElement:class {},window,document,navigator:{standalone,mediaCapabilities:{decodingInfo:async({video})=>({supported:true,smooth:smooth120||video.framerate<120})}},location:{hash,href:'https://example.test/app/account.html'+hash,pathname:'/app/account.html',origin:'https://example.test'},matchMedia:q=>({matches:q.includes('reduced-motion')?reduced:standalone}),innerHeight:844,innerWidth:390,devicePixelRatio:dpr,requestAnimationFrame(fn){frameTime+=1000/refresh;fn(frameTime);},setTimeout(fn){timers.set(++timerId,fn);return timerId;},clearTimeout(id){timers.delete(id);}};
   vm.createContext(context);vm.runInContext(source,context);
   const settle=()=>new Promise(r=>setImmediate(r));
   return {document,window,dialogs,videos,animations,async run(){vm.runInContext('showIntro()',context);await settle();return videos.length;},
@@ -183,6 +183,11 @@ test('refresh rate and display pixels select the intended first source',async()=
   const high=entry(visit(),{refresh:120,dpr:4});await high.run();assert.match(high.videos[0].src,/4k120/);
   const middle=entry(visit(),{refresh:80,dpr:3});await middle.run();assert.match(middle.videos[0].src,/2k80/);
   const standard=entry(visit(),{refresh:60,dpr:1});await standard.run();assert.match(standard.videos[0].src,/1080p60/);
+});
+
+test('high-refresh displays avoid 120fps when the browser reports decoding will not be smooth',async()=>{
+  const constrained=entry(visit(),{refresh:120,dpr:4,smooth120:false});await constrained.run();
+  assert.match(constrained.videos[0].src,/4k80/);
 });
 
 test('dropped-frame fallback never starts from the beginning before seeking to the current frame',async()=>{

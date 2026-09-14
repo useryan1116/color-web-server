@@ -25,6 +25,7 @@ body:has(.color-detail-dialog[open]) main .articulated *,body:has(.color-detail-
 .color-detail-hero>.report-character { width:130px; height:170px; flex-shrink:0; }
 .color-detail-hero>.articulated { --character-delay:0s!important; }
 .color-detail-hero h2 { font-size:30px; }
+.color-detail-hero p { color:var(--detail-ink); color:color-mix(in srgb,var(--detail-ink) 88%,#211f24); }
 .color-detail-copy { padding:26px 32px 32px; display:grid; gap:24px; }
 .color-detail-copy h3 { font:600 20px/1.5 var(--serif); margin-bottom:7px; }
 .color-detail-copy p { line-height:1.9; }
