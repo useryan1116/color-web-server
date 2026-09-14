@@ -10,7 +10,7 @@ export function aboutView() {
   <div class="about-toolbar"><a class="back-link" href="/app/#home">← 回到首頁</a><span data-about-music></span></div>
   <section class="about-hero about-final-hero"><h1 class="about-scene-text">關於 ColorLab</h1><div class="about-final-scene">
   <picture><source media="(orientation:portrait)" srcset="/assets/intro/about-mobile-final-v6.webp"><img class="about-final-poster" src="/assets/intro/about-desktop-final-v6.webp" alt="" fetchpriority="high"></picture>
-  <div class="about-stage" aria-label="點選角色，看看它的招呼">${companions.map(([key,label,saying],i)=>`<button type="button" class="about-character" data-companion="${key}" style="--order:${i}" aria-label="${label}角色，點一下打招呼"><span class="about-bubble" role="status"></span><span class="about-saying" hidden>${saying}</span></button>`).join('')}</div></div>
+  <div class="about-stage" aria-label="點選角色，看看它的招呼">${companions.map(([key,label,saying],i)=>`<button type="button" class="about-character" data-companion="${key}" style="--order:${i}" aria-label="${label}角色，點一下打招呼"><span class="about-saying" hidden>${saying}</span></button>`).join('')}</div><p class="about-dialogue" role="status" aria-live="polite">點一下角色，聽聽它想說什麼</p></div>
   <p class="about-scene-text">每一種顏色，都值得被理解。留一點時間，遇見自己</p><button type="button" class="about-scroll-cue"><span aria-hidden="true">⌄</span>往下探索</button></section>
   <section class="about-intention"><h2>為什麼有 ColorLab？</h2><p>對心理健康與自殺防治議題的關注，是我想做這個網站的起點。我希望能做一個容易接近的自我探索工具，讓人有機會停下來，留意自己的感受、想法，以及面對生活時的習慣。</p><p>我也對人格與色彩之間的關係感到好奇，於是從專題研究開始，嘗試把兩者放在一起探索，慢慢發展成現在的 ColorLab。</p></section>
   <div class="about-columns"><section><h2>從日常選擇，覺察自己</h2><p>有時候，直接回答「我是怎樣的人」並不容易。ColorLab 希望透過日常情境的選擇與色彩呈現，提供一個思考的起點：哪些描述像自己？哪些不太像？比起得到一個類型，更希望你能從中注意到自己的感受與偏好。</p></section><section><h2>認識自己，也看見自己的需要</h2><p>自我探索不必停在測驗結果。網站也整理心理健康資訊與求助資源，希望在你想進一步了解、或需要支持時，能更容易找到下一步。測驗不能解決所有困難，但希望這裡能成為你開始關心自己的入口。</p></section></div>
@@ -25,17 +25,17 @@ export function bindAbout(root) {
   const scrollCue=root.querySelector('.about-scroll-cue');
   if(scrollCue)scrollCue.onclick=()=>{const heading=root.querySelector('.about-intention h2');if(!heading)return;heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});heading.scrollIntoView({behavior:reduced.matches?'instant':'smooth',block:'start'});};
   let timeout;
+  const dialogue=root.querySelector('.about-dialogue');
   root.querySelectorAll('[data-companion]').forEach(button=>{
     button.onclick=()=>{
       clearTimeout(timeout);
-      root.querySelectorAll('.is-speaking').forEach(other=>{other.classList.remove('is-speaking');other.querySelector('.about-bubble').textContent='';});
-      const bubble=button.querySelector('.about-bubble');
-      bubble.textContent=button.querySelector('.about-saying').textContent;
+      root.querySelectorAll('.is-speaking').forEach(other=>other.classList.remove('is-speaking'));
+      dialogue.textContent=button.querySelector('.about-saying').textContent;
+      dialogue.dataset.companion=button.dataset.companion;
       button.classList.add('is-speaking');
       button.getAnimations().forEach(a=>a.cancel());
-      bubble.getAnimations().forEach(a=>a.cancel());
-      if(!reduced.matches)bubble.animate([{opacity:0,translate:'0 4px'},{opacity:1,translate:'0 0'}],{duration:180,easing:'ease-out'});
-      timeout=setTimeout(()=>{button.classList.remove('is-speaking');bubble.textContent='';},3500);
+      if(!reduced.matches)dialogue.animate([{opacity:0,translate:'-50% 4px'},{opacity:1,translate:'-50% 0'}],{duration:180,easing:'ease-out'});
+      timeout=setTimeout(()=>{button.classList.remove('is-speaking');dialogue.textContent='點一下角色，聽聽它想說什麼';delete dialogue.dataset.companion;},3500);
     };
   });
 }

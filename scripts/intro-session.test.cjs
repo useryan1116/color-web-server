@@ -9,8 +9,8 @@ function hub(){const events=new Map();return {
   dispatchEvent(e){for(const fn of [...(events.get(e.type)||[])])fn(e);}
 };}
 function visit(){const attributes=new Map();return {document:{documentElement:{hasAttribute:k=>attributes.has(k),setAttribute:(k,v)=>attributes.set(k,v),removeAttribute:k=>attributes.delete(k)}}};}
-function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalone=false,failFirstCodec=false,failUntil='',withAnimation=false}={}){
-  const dialogs=[],videos=[],animations=[],timers=new Map();let resolvePlay,diagnostics,timerId=0;
+function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalone=false,failUntil='',withAnimation=false,refresh=120,dpr=4}={}){
+  const dialogs=[],videos=[],animations=[],timers=new Map();let resolvePlay,diagnostics,timerId=0,frameTime=0;
   const element=()=>({...hub(),style:{},dataset:{},setAttribute(){},append(){},prepend(){},replaceChildren(){},remove(){},...(withAnimation?{animate(frames,options){let resolve,reject;const finished=new Promise((r,j)=>{resolve=r;reject=j;});animations.push({frames,options,resolve,reject});return {finished};}}:{})});
   const article=element();
   const document={...hub(),documentElement:top.document.documentElement,body:{append(){}},activeElement:null,
@@ -18,11 +18,11 @@ function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalon
     createElement(tag){const node=element();
       if(tag==='dialog'){const skip=element(),stage=element(),loading=element();Object.assign(node,{skip,loading,querySelector:s=>s==='button'?skip:s==='.intro-loading'?loading:stage,showModal(){this.open=true;},close(){this.open=false;}});dialogs.push(node);}
       if(tag==='details'){const output=element();Object.assign(node,{output,querySelector:()=>output});diagnostics=node;}
-      if(tag==='video'){Object.assign(node,{readyState:0,currentTime:0,removeAttribute(){},load(){},pause(){this.paused=true;},play(){const rejected=fail||((failUntil&&!this.src.includes(failUntil))||(failFirstCodec&&!this.src.includes('hevc'))?'NotSupportedError':false);return defer?new Promise(r=>resolvePlay=r):rejected?Promise.reject(Object.assign(new Error('secret-message-not-for-output'),{name:typeof rejected==='string'?rejected:'Error'})):Promise.resolve();}});videos.push(node);}
+      if(tag==='video'){Object.assign(node,{readyState:0,currentTime:0,removeAttribute(){},load(){},pause(){this.paused=true;},play(){const rejected=fail||(failUntil&&!this.src.includes(failUntil)?'NotSupportedError':false);return defer?new Promise(r=>resolvePlay=r):rejected?Promise.reject(Object.assign(new Error('secret-message-not-for-output'),{name:typeof rejected==='string'?rejected:'Error'})):Promise.resolve();}});videos.push(node);}
       return node;
     }};
   const window={...hub(),top};
-  const context={URL,Event,CustomEvent,HTMLElement:class {},window,document,navigator:{standalone},location:{hash,href:'https://example.test/app/account.html'+hash,pathname:'/app/account.html',origin:'https://example.test'},matchMedia:q=>({matches:q.includes('reduced-motion')?reduced:standalone}),innerHeight:844,innerWidth:390,setTimeout(fn){timers.set(++timerId,fn);return timerId;},clearTimeout(id){timers.delete(id);}};
+  const context={URL,Event,CustomEvent,HTMLElement:class {},window,document,navigator:{standalone},location:{hash,href:'https://example.test/app/account.html'+hash,pathname:'/app/account.html',origin:'https://example.test'},matchMedia:q=>({matches:q.includes('reduced-motion')?reduced:standalone}),innerHeight:844,innerWidth:390,devicePixelRatio:dpr,requestAnimationFrame(fn){frameTime+=1000/refresh;fn(frameTime);},setTimeout(fn){timers.set(++timerId,fn);return timerId;},clearTimeout(id){timers.delete(id);}};
   vm.createContext(context);vm.runInContext(source,context);
   const settle=()=>new Promise(r=>setImmediate(r));
   return {document,window,dialogs,videos,animations,async run(){vm.runInContext('showIntro()',context);await settle();return videos.length;},
@@ -100,25 +100,24 @@ test('playback failures exit without exposing debug information',async()=>{
     assert.equal(page.diagnosticText,'');
   }
 });
-test('unsupported AVC retries HEVC at the same 4K120 without closing the intro',async()=>{
-  const page=entry(visit(),{failFirstCodec:true});await page.run();
-  assert.equal(page.videos.length,2);assert.match(page.videos[1].src,/4k120-hevc-v7/);
+test('unsupported 4K120 falls back to 4K80 without closing the intro',async()=>{
+  const page=entry(visit(),{failUntil:'4k80'});await page.run();
+  assert.equal(page.videos.length,2);assert.match(page.videos[1].src,/4k80-avc-v9/);
   assert.equal(page.dialogs[0].open,true);assert.equal(page.videos[0].paused,true);
   page.videos[0].dispatchEvent(new Event('ended'));
   assert.equal(page.dialogs[0].open,true,'stale AVC events cannot close HEVC');
   page.skip();assert.equal(await page.run(),2);
 });
-test('unsupported codecs stop after six attempts and leave a future visit retryable',async()=>{
+test('unsupported sources stop after five attempts and leave a future visit retryable',async()=>{
   const top=visit(),page=entry(top,{fail:'NotSupportedError'});await page.run();
-  assert.equal(page.videos.length,6);assert.equal(page.dialogs[0].open,false);
+  assert.equal(page.videos.length,5);assert.equal(page.dialogs[0].open,false);
   assert.equal(await entry(top).run(),1);
 });
 
-test('4K failure falls through 2K to 1080p while preserving 120fps and ignoring stale events',async()=>{
-  const page=entry(visit(),{failUntil:'1080p120'});await page.run();
+test('4K failure falls through 120, 80 and 60fps before lowering resolution',async()=>{
+  const page=entry(visit(),{failUntil:'1080p60'});await page.run();
   assert.equal(page.videos.length,5);assert.equal(page.dialogs[0].open,true);
-  assert.match(page.videos[2].src,/2k120/);assert.match(page.videos[4].src,/1080p120/);
-  assert.ok(page.videos.every(v=>v.src.includes('120')));
+  assert.match(page.videos[1].src,/4k80/);assert.match(page.videos[3].src,/2k60/);assert.match(page.videos[4].src,/1080p60/);
   for(const video of page.videos.slice(0,-1)){assert.equal(video.paused,true);video.dispatchEvent(new Event('error'));video.dispatchEvent(new Event('ended'));}
   assert.equal(page.videos.length,5);assert.equal(page.dialogs[0].open,true);
   page.skip();assert.equal(page.dialogs[0].open,false);
@@ -127,18 +126,18 @@ test('4K failure falls through 2K to 1080p while preserving 120fps and ignoring 
 test('stalled sources advance; progress renews one timer and skip cancels pending retries',async()=>{
   const page=entry(visit(),{defer:true});await page.run();
   await page.timeout();assert.equal(page.videos.length,2);
-  await page.timeout();assert.match(page.videos[2].src,/2k120/);
+  await page.timeout();assert.match(page.videos[2].src,/4k60/);
   page.videos[2].currentTime=1;page.videos[2].dispatchEvent(new Event('timeupdate'));
   assert.equal(page.timerCount,1);page.skip();assert.equal(page.timerCount,0);
   await page.timeout();assert.equal(page.videos.length,3);
   const all=entry(visit(),{defer:true});await all.run();
-  for(let i=0;i<6;i++)await all.timeout();
-  assert.equal(all.videos.length,6);assert.equal(all.dialogs[0].open,false);assert.equal(all.timerCount,0);
+  for(let i=0;i<5;i++)await all.timeout();
+  assert.equal(all.videos.length,5);assert.equal(all.dialogs[0].open,false);assert.equal(all.timerCount,0);
 });
 
 test('padded portrait fallback aligns scene content, not outer video padding, to poster',async()=>{
-  const page=entry(visit(),{failUntil:'1080p120',withAnimation:true});await page.run();
-  Object.assign(page.videos[4],{videoWidth:1080,videoHeight:1920});page.videos[4].dispatchEvent(new Event('ended'));
+  const page=entry(visit(),{failUntil:'2k60',withAnimation:true});await page.run();
+  Object.assign(page.videos[3],{videoWidth:1080,videoHeight:1920});page.videos[3].dispatchEvent(new Event('ended'));
   const motion=page.animations.find(a=>a.frames.some(f=>f.transform));
   assert.ok(motion.frames[1].transform.includes('scale('));
   assert.notEqual(motion.frames[1].transform,'translate(20px,44.666666666666686px) scale(0.8974358974358975)');
@@ -176,4 +175,11 @@ test('About scene uses final-frame posters with four accessible greeting control
   for(const name of ['mobile','desktop'])assert.ok(html.includes(`/assets/intro/about-${name}-final-v6.webp`));
   assert.ok(html.indexOf('about-toolbar')<html.indexOf('about-final-scene'));
   assert.ok(html.includes('每一種顏色，都值得被理解。留一點時間，遇見自己'));
+  assert.ok(html.includes('about-dialogue'));assert.doesNotMatch(html,/about-bubble/);
+});
+
+test('refresh rate and display pixels select the intended first source',async()=>{
+  const high=entry(visit(),{refresh:120,dpr:4});await high.run();assert.match(high.videos[0].src,/4k120/);
+  const middle=entry(visit(),{refresh:80,dpr:3});await middle.run();assert.match(middle.videos[0].src,/2k80/);
+  const standard=entry(visit(),{refresh:60,dpr:1});await standard.run();assert.match(standard.videos[0].src,/1080p60/);
 });

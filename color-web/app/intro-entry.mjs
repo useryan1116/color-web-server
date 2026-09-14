@@ -1,5 +1,8 @@
 const visitRoot=window.top.document.documentElement;
 const seenAttribute='data-colorlab-intro-seen';
+const measureRefresh=()=>typeof requestAnimationFrame!=='function'?Promise.resolve(60):new Promise(resolve=>{const frames=[];let done=false,timer;const finish=()=>{if(done)return;done=true;clearTimeout(timer);if(frames.length<6)return resolve(60);const gaps=frames.slice(1).map((time,index)=>time-frames[index]).sort((a,b)=>a-b);resolve(Math.round(1000/gaps[Math.floor(gaps.length/2)]));},sample=time=>{if(done)return;frames.push(time);if(frames.length<18)requestAnimationFrame(sample);else finish();};timer=setTimeout(finish,500);requestAnimationFrame(sample);});
+const introFile=(orientation,tier,fps)=>fps===120?(tier==='4k'?`about-${orientation}-4k120-v6.mp4`:`about-${orientation}-${tier}120-avc-v8.mp4`):`about-${orientation}-${tier}${fps}-avc-v9.mp4`;
+const chooseSources=async orientation=>{const refresh=await measureRefresh(),pixels=Math.max(innerWidth,innerHeight)*(globalThis.devicePixelRatio||1),tier=pixels>=3000?'4k':pixels>=2000?'2k':'1080p',rates=refresh>=105?[120,80,60]:refresh>=75?[80,60]:[60],tiers=tier==='4k'?['4k','2k','1080p']:tier==='2k'?['2k','1080p']:['1080p'];return [...rates.map(fps=>[tier,fps]),...tiers.slice(1).map(lower=>[lower,60])].map(([quality,fps])=>[quality.toUpperCase(),fps,introFile(orientation,quality,fps)]);};
 document.addEventListener('colorlab-visit-restored',()=>showIntro());
 document.addEventListener('click',event=>{
   if(event.defaultPrevented||event.button>0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
@@ -30,7 +33,7 @@ export function showIntro() {
   const prior=document.activeElement;
   const close=(status)=>{
     if(closed){if(typeof status!=='string')finishExit?.();return;}closed=true;clearTimeout(deadline);
-    video?.pause();
+    dialog.querySelectorAll?.('video').forEach(item=>item.pause());video?.pause();
     finishExit=()=>{
       if(!dialog.open)return;
       document.dispatchEvent(new Event('colorlab-intro-close'));
@@ -60,32 +63,34 @@ export function showIntro() {
   document.dispatchEvent(new CustomEvent('colorlab-intro-open',{detail:dialog}));
   // The approved Remotion composition is rendered ahead of time, not on the phone.
   const orientation=innerHeight>innerWidth?'mobile':'desktop';
-  const sources=[['4K','H.264',`about-${orientation}-4k120-v6.mp4`],['4K','HEVC',`about-${orientation}-4k120-hevc-v7.mp4`],
-    ...['2k','1080p'].flatMap(tier=>['hevc','avc'].map(codec=>[tier==='2k'?'2K':'1080p',codec==='hevc'?'HEVC':'H.264',`about-${orientation}-${tier}120-${codec}-v8.mp4`]))];
-  const playSource=(index=0)=>{
+  let sources=[];
+  const playSource=(index=0,background=false,resumeAt=0)=>{
     if(closed)return;
-    loading.hidden=false;
+    if(!background)loading.hidden=false;
     clearTimeout(deadline);
     const previous=video;video=null;
-    previous?.pause();previous?.removeAttribute('src');previous?.load();
+    if(!background){previous?.pause();previous?.removeAttribute('src');previous?.load();}
     const candidate=document.createElement('video');video=candidate;
     candidate.muted=true;candidate.defaultMuted=true;candidate.playsInline=true;
     candidate.preload='auto';candidate.setAttribute('aria-label','ColorLab 四色角色開場');
-    const [tier,codec,file]=sources[index];
-    candidate.dataset.introCodec=`${codec} / ${tier} 120`;
-    candidate.dataset.introPadded=String(index>=2&&orientation==='mobile');
+    const [tier,fps,file]=sources[index];
+    candidate.dataset.introCodec=`H.264 / ${tier} ${fps}`;
+    candidate.dataset.introFps=String(fps);
+    candidate.dataset.introPadded=String(tier!=='4K'&&orientation==='mobile');
     candidate.src='/assets/intro/'+file;
     candidate.style.cssText='width:100%;height:100%;object-fit:contain';
     const active=()=>!closed&&video===candidate;
     const failed=(name)=>{
       if(!active())return;
-      if(index+1<sources.length&&(name==='NotSupportedError'||name==='TimeoutError'||name==='MediaError')){playSource(index+1);return;}
+      if(index+1<sources.length&&(name==='NotSupportedError'||name==='TimeoutError'||name==='MediaError')){if(background&&previous){candidate.remove();video=previous;playSource(index+1,true,previous.currentTime);}else playSource(index+1);return;}
       close(({NotAllowedError:'瀏覽器拒絕自動播放',NotSupportedError:'影片格式不支援',AbortError:'播放請求中斷'})[name]||'影片載入或解碼失敗');
     };
     candidate.addEventListener('ended',()=>{if(active())close('播放完成');},{once:true});
-    candidate.addEventListener('playing',()=>{if(active())loading.hidden=true;},{once:true});
+    candidate.addEventListener('playing',()=>{if(!active())return;loading.hidden=true;const start=candidate.getVideoPlaybackQuality?.();if(fps>60&&start)setTimeout(()=>{if(!active())return;const end=candidate.getVideoPlaybackQuality(),total=end.totalVideoFrames-start.totalVideoFrames,dropped=end.droppedVideoFrames-start.droppedVideoFrames;if(total>20&&dropped/total>.06&&index+1<sources.length)playSource(index+1,true,candidate.currentTime);},1100);},{once:true});
     candidate.addEventListener('error',()=>failed(candidate.error?.code===4?'NotSupportedError':'MediaError'),{once:true});
-    dialog.querySelector('[data-intro-stage]').replaceChildren(candidate);
+    const stage=dialog.querySelector('[data-intro-stage]');
+    if(background&&previous){candidate.style.cssText+=';position:absolute;inset:0;opacity:0';stage.style.position='relative';stage.append(candidate);candidate.addEventListener('canplay',()=>{if(!active())return;clearTimeout(deadline);candidate.currentTime=Math.min(resumeAt,Math.max(0,candidate.duration-.1));candidate.play().then(()=>{candidate.animate([{opacity:0},{opacity:1}],{duration:180,fill:'forwards'});setTimeout(()=>{previous.pause();previous.remove();candidate.style.cssText='width:100%;height:100%;object-fit:contain';},180);}).catch(error=>failed(error?.name));},{once:true});deadline=setTimeout(()=>failed('TimeoutError'),4000);candidate.load();return;}
+    stage.replaceChildren(candidate);
     // Advance after stalled loading/playback; progress renews the deadline.
     const arm=()=>{if(active()){clearTimeout(deadline);deadline=setTimeout(()=>failed('TimeoutError'),4000);}};
     let lastTime=0;
@@ -93,5 +98,5 @@ export function showIntro() {
     arm();
     candidate.play().then(()=>{if(active())visitRoot.setAttribute(seenAttribute,'');}).catch(error=>failed(error?.name));
   };
-  playSource();
+  chooseSources(orientation).then(list=>{sources=list;playSource();}).catch(()=>{sources=[['1080P',60,introFile(orientation,'1080p',60)]];playSource();});
 }
