@@ -42,5 +42,6 @@ test('movable music control carries an About back-to-top action', () => {
   const music=read('ambient-music.mjs');
   assert.match(music, /class="ambient-to-top"/);
   assert.match(music, /iframe\[data-colorlab-page\]/);
-  assert.match(music, /scrollTo\(\{top:0,behavior:'smooth'\}\)/);
+  assert.match(music, /requestAnimationFrame\(step\)/);
+  assert.match(music, /Math\.pow\(1-t,3\)/);
 });
