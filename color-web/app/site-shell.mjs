@@ -24,7 +24,7 @@ if (embedded) {
       if (url.origin !== location.origin) link.target = '_top';
     }
   });
-  await import(location.pathname.endsWith('account.html') ? './account.mjs' : './app.js');
+  await import(location.pathname.endsWith('account.html') ? './account.mjs?v=20260914a' : './app.js');
   new MutationObserver(() => { parent.document.title = document.title; })
     .observe(document.querySelector('title'), {childList:true,subtree:true,characterData:true});
   sync();
