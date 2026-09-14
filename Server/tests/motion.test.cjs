@@ -33,3 +33,6 @@ test('question direction is added without waiting or changing saved-answer order
   assert.match(app, /direction === 'next' \|\| direction === 'previous' \? direction : 'page'/);
   assert.doesNotMatch(app, /animationend|transitionend/);
 });
+test('About scroll invitation remains animated after the intro', () => {
+  assert.match(read('about.css'), /about-scroll-invite 1\.6s ease-in-out infinite/);
+});
