@@ -46,7 +46,12 @@ export function updateSessionUser(user, role = 'user') {
   saveSession({ user, token: sessionStorage.getItem(role === 'admin' ? 'adminToken' : 'userToken') }, role);
 }
 export async function api(path, { role = 'user', ...options } = {}) {
-  await window.ColorLabConnection?.ready;
+  const ready = window.ColorLabConnection?.ready;
+  if (ready) {
+    let timeout;
+    try { await Promise.race([ready, new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('服務尚未準備好，請重新嘗試。')), 15000); })]); }
+    finally { clearTimeout(timeout); }
+  }
   const token = sessionStorage.getItem(role === 'admin' ? 'adminToken' : 'userToken');
   const response = await fetch(path, { ...options, headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers }, signal: options.signal || AbortSignal.timeout(25000) });
   const data = await response.json().catch(() => ({ message: '服務尚未準備好，請稍後重試。' }));
