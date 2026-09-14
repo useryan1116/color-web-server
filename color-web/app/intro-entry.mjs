@@ -14,7 +14,6 @@ document.addEventListener('click',event=>{
 });
 export function showIntro() {
   if(location.hash!=='#about')return;
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   // The persistent shell owns one visit; iframe navigation must not reset it.
   if(document.querySelector('dialog[aria-label="ColorLab 開場"][open]'))return;
   if(visitRoot.hasAttribute(seenAttribute))return;
@@ -86,10 +85,10 @@ export function showIntro() {
       close(({NotAllowedError:'瀏覽器拒絕自動播放',NotSupportedError:'影片格式不支援',AbortError:'播放請求中斷'})[name]||'影片載入或解碼失敗');
     };
     candidate.addEventListener('ended',()=>{if(active())close('播放完成');},{once:true});
-    candidate.addEventListener('playing',()=>{if(!active())return;loading.hidden=true;const start=candidate.getVideoPlaybackQuality?.();if(fps>60&&start)setTimeout(()=>{if(!active())return;const end=candidate.getVideoPlaybackQuality(),total=end.totalVideoFrames-start.totalVideoFrames,dropped=end.droppedVideoFrames-start.droppedVideoFrames;if(total>20&&dropped/total>.06&&index+1<sources.length)playSource(index+1,true,candidate.currentTime);},1100);},{once:true});
+    candidate.addEventListener('playing',()=>{if(!active())return;loading.hidden=true;const start=candidate.getVideoPlaybackQuality?.();if(fps>60&&start)setTimeout(()=>{if(!active())return;const end=candidate.getVideoPlaybackQuality(),total=end.totalVideoFrames-start.totalVideoFrames,dropped=end.droppedVideoFrames-start.droppedVideoFrames;if(total>20&&dropped/total>.1&&index+1<sources.length)playSource(index+1,true,candidate.currentTime);},1100);},{once:true});
     candidate.addEventListener('error',()=>failed(candidate.error?.code===4?'NotSupportedError':'MediaError'),{once:true});
     const stage=dialog.querySelector('[data-intro-stage]');
-    if(background&&previous){candidate.style.cssText+=';position:absolute;inset:0;opacity:0';stage.style.position='relative';stage.append(candidate);candidate.addEventListener('canplay',()=>{if(!active())return;clearTimeout(deadline);candidate.currentTime=Math.min(resumeAt,Math.max(0,candidate.duration-.1));candidate.play().then(()=>{candidate.animate([{opacity:0},{opacity:1}],{duration:180,fill:'forwards'});setTimeout(()=>{previous.pause();previous.remove();candidate.style.cssText='width:100%;height:100%;object-fit:contain';},180);}).catch(error=>failed(error?.name));},{once:true});deadline=setTimeout(()=>failed('TimeoutError'),4000);candidate.load();return;}
+    if(background&&previous){candidate.style.cssText+=';position:absolute;inset:0;opacity:0';stage.style.position='relative';stage.append(candidate);candidate.addEventListener('canplay',()=>{if(!active())return;clearTimeout(deadline);const swap=()=>candidate.play().then(()=>{candidate.animate?.([{opacity:0},{opacity:1}],{duration:180,fill:'forwards'});setTimeout(()=>{previous.pause();previous.remove();candidate.style.cssText='width:100%;height:100%;object-fit:contain';},180);}).catch(error=>failed(error?.name)),target=Math.min(resumeAt,Math.max(0,candidate.duration-.1));if(target>.05){candidate.addEventListener('seeked',swap,{once:true});candidate.currentTime=target;}else swap();},{once:true});deadline=setTimeout(()=>failed('TimeoutError'),4000);candidate.load();return;}
     stage.replaceChildren(candidate);
     // Advance after stalled loading/playback; progress renews the deadline.
     const arm=()=>{if(active()){clearTimeout(deadline);deadline=setTimeout(()=>failed('TimeoutError'),4000);}};

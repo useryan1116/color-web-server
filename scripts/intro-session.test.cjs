@@ -9,7 +9,7 @@ function hub(){const events=new Map();return {
   dispatchEvent(e){for(const fn of [...(events.get(e.type)||[])])fn(e);}
 };}
 function visit(){const attributes=new Map();return {document:{documentElement:{hasAttribute:k=>attributes.has(k),setAttribute:(k,v)=>attributes.set(k,v),removeAttribute:k=>attributes.delete(k)}}};}
-function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalone=false,failUntil='',withAnimation=false,refresh=120,dpr=4}={}){
+function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalone=false,failUntil='',withAnimation=false,refresh=120,dpr=4,drop=false,delayedSeek=false}={}){
   const dialogs=[],videos=[],animations=[],timers=new Map();let resolvePlay,diagnostics,timerId=0,frameTime=0;
   const element=()=>({...hub(),style:{},dataset:{},setAttribute(){},append(){},prepend(){},replaceChildren(){},remove(){},...(withAnimation?{animate(frames,options){let resolve,reject;const finished=new Promise((r,j)=>{resolve=r;reject=j;});animations.push({frames,options,resolve,reject});return {finished};}}:{})});
   const article=element();
@@ -18,7 +18,7 @@ function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalon
     createElement(tag){const node=element();
       if(tag==='dialog'){const skip=element(),stage=element(),loading=element();Object.assign(node,{skip,loading,querySelector:s=>s==='button'?skip:s==='.intro-loading'?loading:stage,showModal(){this.open=true;},close(){this.open=false;}});dialogs.push(node);}
       if(tag==='details'){const output=element();Object.assign(node,{output,querySelector:()=>output});diagnostics=node;}
-      if(tag==='video'){Object.assign(node,{readyState:0,currentTime:0,removeAttribute(){},load(){},pause(){this.paused=true;},play(){const rejected=fail||(failUntil&&!this.src.includes(failUntil)?'NotSupportedError':false);return defer?new Promise(r=>resolvePlay=r):rejected?Promise.reject(Object.assign(new Error('secret-message-not-for-output'),{name:typeof rejected==='string'?rejected:'Error'})):Promise.resolve();}});videos.push(node);}
+      if(tag==='video'){let qualityCalls=0,currentTime=0;Object.assign(node,{readyState:0,duration:4.4,seeking:false,playedBeforeSeek:false,playCalls:0,removeAttribute(){},load(){},pause(){this.paused=true;},getVideoPlaybackQuality(){return drop?qualityCalls++?{totalVideoFrames:200,droppedVideoFrames:20}:{totalVideoFrames:100,droppedVideoFrames:0}:{totalVideoFrames:100,droppedVideoFrames:0};},play(){this.playCalls++;if(this.seeking)this.playedBeforeSeek=true;const rejected=fail||(failUntil&&!this.src.includes(failUntil)?'NotSupportedError':false);return defer?new Promise(r=>resolvePlay=r):rejected?Promise.reject(Object.assign(new Error('secret-message-not-for-output'),{name:typeof rejected==='string'?rejected:'Error'})):Promise.resolve();}});Object.defineProperty(node,'currentTime',{get:()=>currentTime,set:value=>{currentTime=value;if(delayedSeek&&value>0)node.seeking=true;}});videos.push(node);}
       return node;
     }};
   const window={...hub(),top};
@@ -27,6 +27,7 @@ function entry(top,{hash='#about',reduced=false,fail=false,defer=false,standalon
   const settle=()=>new Promise(r=>setImmediate(r));
   return {document,window,dialogs,videos,animations,async run(){vm.runInContext('showIntro()',context);await settle();return videos.length;},
     async timeout(){for(const [id,fn] of [...timers]){timers.delete(id);fn();}await settle();},get timerCount(){return timers.size;},
+    async latestTimeout(){const last=[...timers].at(-1);if(last){timers.delete(last[0]);last[1]();await settle();}},
     async finishTransitions(reject=false){for(const a of animations)reject?a.reject():a.resolve();await settle();},
     get diagnosticText(){return diagnostics?.output.textContent||'';},
     skip(){dialogs.at(-1)?.skip.onclick();},
@@ -83,9 +84,9 @@ test('restoring cached About DOM invokes its entry hook',()=>{
   const context={retained:{at:Date.now(),nodes:[],title:'About',top:0},main:{replaceChildren(){},removeAttribute(){}},document:{querySelector:()=>null},window:{scrollTo(){}},navigationMotion:{commit(){}},current:'about',routeKey:'about',bindAbout(){starts++;}};
   vm.runInNewContext(`(()=>{${block}})()`,context);assert.equal(starts,1);
 });
-test('home and reduced motion do not consume the opening',async()=>{
+test('home does not consume the opening and reduced motion still autoplays once',async()=>{
   const top=visit();assert.equal(await entry(top,{hash:'#home'}).run(),0);
-  assert.equal(await entry(top,{reduced:true}).run(),0);assert.equal(await entry(top).run(),1);
+  const reduced=entry(top,{reduced:true});assert.equal(await reduced.run(),1);reduced.skip();assert.equal(await entry(top).run(),0);
 });
 test('production About never displays temporary diagnostic panels',async()=>{
   const top=visit(),reduced=entry(top,{reduced:true,standalone:true});await reduced.run();
@@ -182,4 +183,13 @@ test('refresh rate and display pixels select the intended first source',async()=
   const high=entry(visit(),{refresh:120,dpr:4});await high.run();assert.match(high.videos[0].src,/4k120/);
   const middle=entry(visit(),{refresh:80,dpr:3});await middle.run();assert.match(middle.videos[0].src,/2k80/);
   const standard=entry(visit(),{refresh:60,dpr:1});await standard.run();assert.match(standard.videos[0].src,/1080p60/);
+});
+
+test('dropped-frame fallback never starts from the beginning before seeking to the current frame',async()=>{
+  const page=entry(visit(),{drop:true,delayedSeek:true,withAnimation:true});await page.run();
+  page.videos[0].currentTime=1.4;page.videos[0].seeking=false;page.videos[0].dispatchEvent(new Event('playing'));
+  await page.latestTimeout();assert.equal(page.videos.length,2);
+  page.videos[1].dispatchEvent(new Event('canplay'));await new Promise(r=>setImmediate(r));
+  assert.equal(page.videos[1].playedBeforeSeek,false,'fallback must wait for seeked before play');
+  assert.equal(page.videos[1].playCalls,0);page.videos[1].seeking=false;page.videos[1].dispatchEvent(new Event('seeked'));await new Promise(r=>setImmediate(r));assert.equal(page.videos[1].playCalls,1);
 });
