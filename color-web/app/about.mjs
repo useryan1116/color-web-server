@@ -30,10 +30,10 @@ export function bindAbout(root) {
   const scrollToIntention=()=>{
     const heading=root.querySelector('.about-intention h2');
     if(!heading)return;
-    const from=window.scrollY,start=performance.now(),duration=640;
+    const from=window.scrollY,target=Math.max(0,from+heading.getBoundingClientRect().top-100),start=performance.now(),duration=480;
     const run=now=>{
       const t=Math.min(1,(now-start)/duration),y=Math.sin((t*Math.PI)/2);
-      window.scrollTo(0,from*(1-y));
+      window.scrollTo({top:Math.round(from+(target-from)*y),behavior:'instant'});
       if(t<1)window.requestAnimationFrame(run);
     };
     heading.setAttribute('tabindex','-1');

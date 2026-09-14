@@ -24,7 +24,7 @@ const styles=document.createElement('style');styles.textContent=`
 `;document.head.append(styles);
 const trigger=widget.querySelector('.ambient-music-icon'),toTop=widget.querySelector('.ambient-to-top');
 let reposition=()=>{};
-let toTopFrameId=0;
+let toTopTimer=0;
 const expand=open=>{widget.dataset.open=String(open);trigger.setAttribute('aria-expanded',String(open));panel.inert=!open;reposition();};
 const collapse=()=>expand(false);
 trigger.onclick=()=>expand(widget.dataset.open!=='true');
@@ -40,33 +40,14 @@ const bindPageScroll=()=>{const view=pageFrame()?.contentWindow;if(!view)return;
 const animateTop=view=>{
   const from=view.scrollY;
   if(from<=0||typeof view.scrollTo!=='function') return;
-  try{
-    if(toTopFrameId){
-      view.cancelAnimationFrame(toTopFrameId);
-      toTopFrameId=0;
-    }
-    const start=view.performance.now(),duration=240;
-    const easeOutCubic=t=>1-Math.pow(1-t,3);
-    const step=now=>{
-      const t=Math.min(1,(now-start)/duration);
-      const next=Math.max(0,Math.round(from*(1-easeOutCubic(t))));
-      view.scrollTo(0,next);
-      if(t<1){
-        toTopFrameId=view.requestAnimationFrame(step);
-      }else{
-        toTopFrameId=0;
-      }
-    };
-    toTopFrameId=view.requestAnimationFrame(step);
-  }catch{
-    const start=view.performance.now(),duration=340;
-    const step=now=>{
-      const t=Math.min(1,(now-start)/duration);
-      view.scrollTo(0,from*(1-t));
-      if(t<1)view.requestAnimationFrame(step);
-    };
-    step(start);
-  }
+  if(toTopTimer)view.clearInterval(toTopTimer);
+  const duration=Math.min(620,Math.max(440,from*.2)),steps=Math.ceil(duration/16);let step=0;
+  const run=()=>{
+    const t=Math.min(1,++step/steps);
+    view.scrollTo({top:Math.max(0,Math.round(from*(1-t))),behavior:'instant'});
+    if(t===1){view.clearInterval(toTopTimer);toTopTimer=0;}
+  };
+  run();toTopTimer=view.setInterval(run,Math.ceil(duration/steps));
 };
 toTop.onclick=()=>{const view=pageFrame()?.contentWindow;if(view)animateTop(view);};
 pageFrame()?.addEventListener('load',bindPageScroll);document.addEventListener('colorlab-page-route',bindPageScroll);bindPageScroll();
