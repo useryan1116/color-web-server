@@ -67,5 +67,5 @@ if (embedded) {
   });
   frame.addEventListener('load',()=>import('./warm-assets.mjs').then(({warmAssets})=>warmAssets()),{once:true});
   document.body.append(frame);
-  await import('./ambient-music.mjs?v=20260914h');
+  await import('./ambient-music.mjs?v=20260914i');
 }

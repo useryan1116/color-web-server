@@ -24,6 +24,7 @@ const styles=document.createElement('style');styles.textContent=`
 `;document.head.append(styles);
 const trigger=widget.querySelector('.ambient-music-icon'),toTop=widget.querySelector('.ambient-to-top');
 let reposition=()=>{};
+let toTopFrameId=0;
 const expand=open=>{widget.dataset.open=String(open);trigger.setAttribute('aria-expanded',String(open));panel.inert=!open;reposition();};
 const collapse=()=>expand(false);
 trigger.onclick=()=>expand(widget.dataset.open!=='true');
@@ -40,22 +41,23 @@ const animateTop=view=>{
   const from=view.scrollY;
   if(from<=0||typeof view.scrollTo!=='function') return;
   try{
-    // 快速回到頂部，避免部分設備在 smooth scroll 時延遲過長或失效
-    view.scrollTo(0, 0);
-    if(view.scrollY <= 0) return;
-    view.scrollTo({top:0,left:0,behavior:'smooth'});
-    requestAnimationFrame(()=>{
-      if(view.scrollY > 0){
-        const start=view.performance.now(),duration=220;
-        const step=now=>{
-          const t=Math.min(1,(now-start)/duration);
-          view.scrollTo(0,from*(1-t));
-          if(t<1&&view.scrollY>0)view.requestAnimationFrame(step);
-        };
-        step(start);
+    if(toTopFrameId){
+      view.cancelAnimationFrame(toTopFrameId);
+      toTopFrameId=0;
+    }
+    const start=view.performance.now(),duration=240;
+    const easeOutCubic=t=>1-Math.pow(1-t,3);
+    const step=now=>{
+      const t=Math.min(1,(now-start)/duration);
+      const next=Math.max(0,Math.round(from*(1-easeOutCubic(t))));
+      view.scrollTo(0,next);
+      if(t<1){
+        toTopFrameId=view.requestAnimationFrame(step);
+      }else{
+        toTopFrameId=0;
       }
-    });
-    return;
+    };
+    toTopFrameId=view.requestAnimationFrame(step);
   }catch{
     const start=view.performance.now(),duration=340;
     const step=now=>{
