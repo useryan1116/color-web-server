@@ -23,6 +23,9 @@ export function bindAbout(root) {
   showIntro();
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const scrollCue=root.querySelector('.about-scroll-cue');
+  const arrow=scrollCue?.querySelector('span');
+  arrow?.getAnimations().forEach(animation=>animation.cancel());
+  arrow?.animate?.([{transform:'translateY(0)',opacity:.5},{transform:'translateY(9px)',opacity:1},{transform:'translateY(0)',opacity:.5}],{duration:1600,easing:'ease-in-out',iterations:Infinity});
   if(scrollCue)scrollCue.onclick=()=>{const heading=root.querySelector('.about-intention h2');if(!heading)return;heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});heading.scrollIntoView({behavior:reduced.matches?'instant':'smooth',block:'start'});};
   let timeout;
   const dialogue=root.querySelector('.about-dialogue');

@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../static-dist');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 assert(read('index.html').includes('/app/site-shell.mjs'));
-assert(read('app/site-shell.mjs').includes("import('./ambient-music.mjs?v=20260914b')"));
+assert(read('app/site-shell.mjs').includes("import('./ambient-music.mjs?v=20260914c')"));
 assert(read('app/index.html').includes('/js/static-connection.js'));
 assert(!read('app/app.js').includes('interface-demo'));
 assert(!read('app/pdf.html').includes('static-connection.js'));

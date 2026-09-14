@@ -24,7 +24,7 @@ if (embedded) {
       if (url.origin !== location.origin) link.target = '_top';
     }
   });
-  await import(location.pathname.endsWith('account.html') ? './account.mjs?v=20260914d' : './app.js');
+  await import(location.pathname.endsWith('account.html') ? './account.mjs?v=20260914e' : './app.js');
   new MutationObserver(() => { parent.document.title = document.title; })
     .observe(document.querySelector('title'), {childList:true,subtree:true,characterData:true});
   sync();
@@ -67,5 +67,5 @@ if (embedded) {
   });
   frame.addEventListener('load',()=>import('./warm-assets.mjs').then(({warmAssets})=>warmAssets()),{once:true});
   document.body.append(frame);
-  await import('./ambient-music.mjs?v=20260914b');
+  await import('./ambient-music.mjs?v=20260914c');
 }
