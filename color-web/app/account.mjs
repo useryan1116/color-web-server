@@ -8,7 +8,7 @@ import { statisticsView } from './statistics-view.mjs';
 import { createNavigationMotion } from './navigation-motion.mjs';
 import { createTabScrubber } from './tab-scrubber.mjs';
 import { showCompletion } from './completion-feedback.mjs';
-import { aboutView, bindAbout } from './about.mjs?v=20260914e';
+import { aboutView, bindAbout } from './about.mjs?v=20260914f';
 
 const main = document.querySelector('main');
 const navigationMotion = createNavigationMotion(main);

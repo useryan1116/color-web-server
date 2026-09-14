@@ -5,6 +5,7 @@ const companions = [
   ['green','綠色','慢慢來，照自己的步調。'],
   ['blue','藍色','每一面，都值得好好看看。']
 ];
+let scrollFrame;
 export function aboutView() {
   return `<article class="about-colorlab">
   <div class="about-toolbar"><a class="back-link" href="/app/#home">← 回到首頁</a><span data-about-music></span></div>
@@ -24,8 +25,9 @@ export function bindAbout(root) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const scrollCue=root.querySelector('.about-scroll-cue');
   const arrow=scrollCue?.querySelector('span');
-  arrow?.getAnimations().forEach(animation=>animation.cancel());
-  arrow?.animate?.([{transform:'translateY(0)',opacity:.5},{transform:'translateY(9px)',opacity:1},{transform:'translateY(0)',opacity:.5}],{duration:1600,easing:'ease-in-out',iterations:Infinity});
+  cancelAnimationFrame(scrollFrame);
+  const started=performance.now(),pulse=now=>{if(!arrow?.isConnected)return;const phase=(now-started)%1600/1600,y=Math.sin(phase*Math.PI)**2;arrow.style.transform=`translateY(${Math.round(y*12)}px)`;arrow.style.opacity=String(.45+y*.55);scrollFrame=requestAnimationFrame(pulse);};
+  if(arrow){arrow.style.setProperty('animation','none','important');scrollFrame=requestAnimationFrame(pulse);}
   if(scrollCue)scrollCue.onclick=()=>{const heading=root.querySelector('.about-intention h2');if(!heading)return;heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});heading.scrollIntoView({behavior:reduced.matches?'instant':'smooth',block:'start'});};
   let timeout;
   const dialogue=root.querySelector('.about-dialogue');

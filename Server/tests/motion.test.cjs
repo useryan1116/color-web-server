@@ -37,8 +37,8 @@ test('About scroll invitation remains animated after the intro', () => {
   assert.match(read('about.css'), /\.about-scroll-cue span\{animation:about-scroll-invite 1\.6s ease-in-out infinite!important\}/);
   assert.doesNotMatch(read('about.css'), /prefers-reduced-motion:no-preference\)\{\.about-scroll-cue/);
   assert.match(read('about.css'), /translateY\(9px\)/);
-  assert.match(read('about.mjs'), /iterations:Infinity/);
-  assert.match(read('about.mjs'), /arrow\?\.getAnimations\(\)\.forEach/);
+  assert.match(read('about.mjs'), /requestAnimationFrame\(pulse\)/);
+  assert.match(read('about.mjs'), /style\.setProperty\('animation','none','important'\)/);
 });
 test('movable music control carries an About back-to-top action', () => {
   const music=read('ambient-music.mjs');
@@ -49,4 +49,5 @@ test('movable music control carries an About back-to-top action', () => {
   assert.match(music, /Math\.pow\(1-t,2\)/);
   assert.match(music, /step\(start\+4\)/);
   assert.match(music, /\['survey','surveys','test'\]\.includes/);
+  assert.match(read('music-position.mjs'), /target=from\+22<innerWidth\/2\?8:innerWidth-52/);
 });
