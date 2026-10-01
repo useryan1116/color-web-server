@@ -126,5 +126,13 @@
     "generatedAt": "2026-09-06",
     "reviewed": true,
     "prompt": "Use case: illustration-story. Create one unique landscape 3:2 editorial illustration for a ColorLab mental-health information article. Warm watercolor and colored-pencil texture on creamy offwhite paper; muted berry pink, mustard, sage, dusty blue. Clear focal point, tasteful adult audience, editorial illustrative rather than official poster. No text, no letters, no watermark, no logos, no organization endorsement, no medical claims. Do not use the repeated two-person counseling-room composition. Subject: A diverse small group of three adults arranging illustrated abstract emotion cards around a round worktable, above it a delicate network of connected dots and simple transparent digital shapes. Human-centered learning and AI research conference metaphor, no robots, no promises."
+  },
+  {
+    "imageUrl": "/assets/images/posts/mindful-awareness-20261001.webp",
+    "sha256": "02d0815600d71cdf7904c191cb478fc6296e44eafcafd2df82a70fc97ddd124c",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-01",
+    "reviewed": true,
+    "prompt": "Use case: illustration-story. ColorLab weekly information card, landscape 3:2. Warm hand-drawn colored-pencil and wax-crayon illustration for a public mental-health month series about everyday awareness and mindfulness. Diverse adults notice breath and senses, with subtle motifs for mindful eating, stretching and quiet reflection. Muted coral, warm yellow, sky blue and leaf green on cream. No words, letters, logos, official poster imitation, medical claims or watermark; original theme illustration."
   }
 ]
